@@ -340,15 +340,19 @@ bigGround.rotation.x=-Math.PI/2; bigGround.position.y=-0.35; bigGround.receiveSh
 rioGroup.add(bigGround);
 
 // Rua de Santa Teresa descendo - paralelepípedo bem visível
+// IMPORTANTE: a casa ocupa x:[-7.2,7.2] e z:[-23.5,19] (varanda é o cômodo mais "de fora", com z0=-23.5).
+// A rua/trilho/bondinho ficam TODOS além de z=-23.5 (visíveis a partir da varanda, sem cruzar dentro da casa).
+const RUA_Z_CENTRO = -78; // centro da rua, bem além da varanda
+const RUA_Z_METADE = 45;  // metade do comprimento da rua
 const streetMat = new THREE.MeshStandardMaterial({color:'#6a6a6a', roughness:0.95});
-const street = new THREE.Mesh(new THREE.PlaneGeometry(10, 160), streetMat);
-street.rotation.x=-Math.PI/2; street.position.set(0,-0.28,-55); street.receiveShadow=true;
+const street = new THREE.Mesh(new THREE.PlaneGeometry(10, RUA_Z_METADE * 2), streetMat);
+street.rotation.x=-Math.PI/2; street.position.set(0,-0.28,RUA_Z_CENTRO); street.receiveShadow=true;
 rioGroup.add(street);
 // Trilhos do bondinho de Santa Teresa (2 trilhos)
 const railMat = new THREE.MeshStandardMaterial({color:'#2a2a2a', metalness:0.7, roughness:0.3});
 for(let side of [-1.4,1.4]){
-  const rail = new THREE.Mesh(new THREE.BoxGeometry(0.22,0.12,160), railMat);
-  rail.position.set(side,-0.22,-55); rioGroup.add(rail);
+  const rail = new THREE.Mesh(new THREE.BoxGeometry(0.22,0.12,RUA_Z_METADE * 2), railMat);
+  rail.position.set(side,-0.22,RUA_Z_CENTRO); rioGroup.add(rail);
 }
 // Bondinho de Santa Teresa - TRAM que anda na rua (não é o do Pão de Açúcar)
 const tramGroup = new THREE.Group();
@@ -357,10 +361,12 @@ tramBase.position.y=0.6; tramGroup.add(tramBase);
 const tramRoof = new THREE.Mesh(new THREE.BoxGeometry(1.9,0.15,3.3), new THREE.MeshStandardMaterial({color:'#8a4a2a'}));
 tramRoof.position.y=1.2; tramGroup.add(tramRoof);
 for(let i=0;i<4;i++){ const wheel=new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.18,0.1,8), new THREE.MeshStandardMaterial({color:'#1a1a1a'})); wheel.rotation.z=Math.PI/2; wheel.position.set(i<2?-0.9:0.9,0.18, i%2==0 ? -1.0 : 1.0); tramGroup.add(wheel); }
-tramGroup.position.set(0,0,-15);
+tramGroup.position.set(0,0,RUA_Z_CENTRO);
 tramGroup.castShadow=true;
 rioGroup.add(tramGroup);
 rioGroup.userData.tramGroup=tramGroup;
+rioGroup.userData.tramZCentro = RUA_Z_CENTRO;
+rioGroup.userData.tramAmplitude = RUA_Z_METADE - 5; // margem de segurança nas pontas dos trilhos
 
 // Pão de Açúcar - 2 morros icônicos bem detalhados
 const paoMat = new THREE.MeshStandardMaterial({color:'#4a5a6a', roughness:0.8});
@@ -423,6 +429,32 @@ for(let i=0;i<18;i++){
   palm(Math.cos(ang)*rad, Math.sin(ang)*rad-8, 0.9+Math.random()*0.6);
 }
 
+// Guarda-sóis coloridos na areia (estilo praia carioca)
+const umbrellaColors = ['#e63946','#f4a261','#2e7d4f','#1B4D6B','#ffcc00'];
+function beachUmbrella(x,z){
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.035,1.6,6), new THREE.MeshStandardMaterial({color:'#e8e0d0'}));
+  pole.position.set(x,0.4,z); pole.castShadow=true; rioGroup.add(pole);
+  const col = umbrellaColors[Math.floor(Math.random()*umbrellaColors.length)];
+  const canopy = new THREE.Mesh(new THREE.ConeGeometry(0.85,0.5,10), new THREE.MeshStandardMaterial({color:col, roughness:0.7}));
+  canopy.position.set(x,1.25,z); canopy.castShadow=true; rioGroup.add(canopy);
+}
+for(let i=0;i<9;i++) beachUmbrella(-20+i*7+(Math.random()-0.5)*2, -62+(Math.random()-0.5)*4);
+
+// Gaivotas simples sobrevoando o mar
+const seagulls = [];
+function seagull(x,y,z){
+  const g=new THREE.Group();
+  const wing=new THREE.Mesh(new THREE.ConeGeometry(0.3,0.06,3), new THREE.MeshBasicMaterial({color:'#ffffff'}));
+  const wing2=wing.clone();
+  wing.position.x=-0.15; wing.rotation.z=0.5;
+  wing2.position.x=0.15; wing2.rotation.z=-0.5; wing2.rotation.y=Math.PI;
+  g.add(wing,wing2); g.position.set(x,y,z);
+  rioGroup.add(g);
+  seagulls.push({ mesh:g, radius: 8+Math.random()*10, speed: 0.15+Math.random()*0.1, phase: Math.random()*Math.PI*2, baseY:y, cx:x, cz:z });
+}
+seagull(0,14,-60); seagull(6,16,-66); seagull(-8,15,-56);
+rioGroup.userData.seagulls = seagulls;
+
 /* ============================================================
    BONECO MINECRAFT - SKIN TROCÁVEL - VOCÊ FAZ A SKIN
    ============================================================ */
@@ -480,6 +512,7 @@ function createMinecraftCharacter(skinTex){
   const group=new THREE.Group();
   const mat=new THREE.MeshStandardMaterial({map:skinTex});
   mat.map.magFilter=THREE.NearestFilter;
+  group.userData.material = mat; // guardado pra permitir trocar a skin depois (ver loadSkin/assets/sprites)
   
   const headGeo=new THREE.BoxGeometry(0.4,0.4,0.4);
   const head=new THREE.Mesh(headGeo, mat); head.position.y=1.5; head.castShadow=true; group.add(head); group.userData.head=head;
@@ -500,8 +533,40 @@ function createMinecraftCharacter(skinTex){
   return group;
 }
 
-// SKINS - TROCA AQUI - igual Minecraft, só mudar PNG depois
-// Pra usar PNG externo depois: const loader=new THREE.TextureLoader(); const tex=loader.load('assets/skins/sofia_tropical.png');
+/* ============================================================
+   SPRITES OPCIONAIS - assets/sprites/skins/
+   ------------------------------------------------------------
+   Se você quiser usar skins reais (imagem) em vez das geradas por
+   código, só colocar os arquivos PNG 64x64 no formato Minecraft
+   (layout clássico) com ESSES nomes exatos dentro da pasta:
+
+     assets/sprites/skins/sofia_tropical.png
+     assets/sprites/skins/sofia_princess.png
+     assets/sprites/skins/lucas.png
+     assets/sprites/skins/lucas_formal.png
+
+   Se o arquivo existir, ele é usado automaticamente. Se não existir
+   (ou der erro 404), o jogo cai pra skin gerada por código sem
+   quebrar nada — não precisa mexer em mais nada no script.
+   ============================================================ */
+const SPRITE_BASE = 'assets/sprites/skins/';
+const textureLoader = new THREE.TextureLoader();
+// Tenta trocar a skin procedural de um personagem pelo PNG real, se o arquivo existir.
+// Não faz nada (e não quebra nada) se o arquivo não for encontrado.
+function applyRealSkinIfAvailable(characterGroup, fileName) {
+  textureLoader.load(
+    SPRITE_BASE + fileName,
+    (tex) => {
+      tex.magFilter = THREE.NearestFilter; tex.minFilter = THREE.NearestFilter; tex.colorSpace = THREE.SRGBColorSpace;
+      const mat = characterGroup.userData.material;
+      if (mat) { mat.map = tex; mat.needsUpdate = true; }
+    },
+    undefined,
+    () => { /* PNG não encontrado: mantém a skin gerada por código, sem erro visível */ }
+  );
+}
+
+// SKINS - TROCA AQUI - igual Minecraft, só mudar PNG depois (veja o bloco de comentário acima)
 const skinSofiaTropical = createMinecraftSkin('sofia_tropical');
 const skinSofiaPrincess = createMinecraftSkin('sofia_princess');
 const skinLucas = createMinecraftSkin('lucas');
@@ -510,6 +575,8 @@ const skinLucas2 = createMinecraftSkin('lucas_formal'); // segunda skin do Lucas
 const sofiaTropical = createMinecraftCharacter(skinSofiaTropical);
 const sofiaPrincess = createMinecraftCharacter(skinSofiaPrincess);
 sofiaPrincess.visible=false;
+applyRealSkinIfAvailable(sofiaTropical, 'sofia_tropical.png');
+applyRealSkinIfAvailable(sofiaPrincess, 'sofia_princess.png');
 
 const playerMesh = new THREE.Group();
 playerMesh.add(sofiaTropical);
@@ -562,6 +629,23 @@ function updateFlowerPower(dt){
 
 
 
+// Campo de estrelas usado na transição pro entardecer (tweenSky) - some de dia, aparece ao anoitecer
+const starGeo = new THREE.BufferGeometry();
+const starCount = 260;
+const starPositions = new Float32Array(starCount * 3);
+for (let i = 0; i < starCount; i++) {
+  const ang = Math.random() * Math.PI * 2;
+  const radius = 90 + Math.random() * 60;
+  const height = 20 + Math.random() * 70;
+  starPositions[i * 3] = Math.cos(ang) * radius;
+  starPositions[i * 3 + 1] = height;
+  starPositions[i * 3 + 2] = Math.sin(ang) * radius;
+}
+starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+const starMat = new THREE.PointsMaterial({ color: '#fff6da', size: 0.9, transparent: true, opacity: 0, sizeAttenuation: true });
+const starField = new THREE.Points(starGeo, starMat);
+world.add(starField);
+
 const player = {
   pos: new THREE.Vector3(0,0,4),
   costume: 'tropical',
@@ -572,6 +656,25 @@ const player = {
   currentMesh: sofiaTropical,
   moveDir: new THREE.Vector3()
 };
+
+// Poder de flores: usável a qualquer momento pelo botão dedicado (mobile) ou tecla F (PC).
+// Se o jogador estiver perto da vinha ainda não limpa, também libera a passagem.
+let flowerPowerCooldown = 0;
+function triggerFlowerBurst() {
+  if (player.locked || dialogueActive || flowerPowerCooldown > 0) return;
+  flowerPowerCooldown = 0.5;
+  setPlayerAction('attack', 650);
+  toast('🌸 Rajada de flores!');
+  if (!state.vineCleared && player.pos.distanceTo(new THREE.Vector3(0, 0, -5.5)) < 4.2) {
+    setTimeout(() => {
+      vineGroup.children.forEach((c) => { c.visible = false; });
+      state.vineCleared = true;
+      const idx = colliders.findIndex((c) => c.minZ === -5.75);
+      if (idx > -1) colliders.splice(idx, 1);
+      setObjective('Explore o corredor e reúna a chave em forma de coração.');
+    }, 500);
+  }
+}
 
 function setPlayerAction(kind, duration){
   const mesh=player.currentMesh; if(!mesh) return;
@@ -685,17 +788,7 @@ world.add(vineGroup);
 addCollider(ZONE.sala.x0, ZONE.sala.x1, -5.75, -5.25);
 interactables.push({
   pos: new THREE.Vector3(0, 0, -5.5), radius: 4.2, id: 'vinha', label: 'Usar o poder das flores',
-  onInteract: () => {
-    if (state.vineCleared) return;
-    setPlayerAction('attack', 650);
-    toast('🌸 Pétalas e folhas afastam o caminho!');
-    setTimeout(() => {
-      vineGroup.children.forEach((c) => { c.visible = false; });
-      state.vineCleared = true;
-      colliders.splice(colliders.findIndex((c) => c.minZ === -5.75), 1);
-      setObjective('Explore o corredor e reúna a chave em forma de coração.');
-    }, 500);
-  },
+  onInteract: () => { if (!state.vineCleared) triggerFlowerBurst(); },
 });
 
 const frameTex = [0, 1, 2].map((i) => canvasTex((ctx, w, h) => {
@@ -961,6 +1054,7 @@ const keysDown = {};
 window.addEventListener('keydown', (e) => {
   keysDown[e.key.toLowerCase()] = true;
   if (e.key.toLowerCase() === 'e' || e.key === ' ') { e.preventDefault(); tryInteract(); }
+  else if (e.key.toLowerCase() === 'f') { e.preventDefault(); triggerFlowerBurst(); }
   else if (dialogueActive && e.key === 'Enter') advanceDialogue();
 });
 window.addEventListener('keyup', (e) => { keysDown[e.key.toLowerCase()] = false; });
@@ -1008,6 +1102,9 @@ function tryInteract() {
    MOVEMENT / COLLISION - ATUALIZADO PRA 3D
    ============================================================ */
 const moveDir = new THREE.Vector3();
+const camForward = new THREE.Vector3();
+const camRight = new THREE.Vector3();
+const WORLD_UP = new THREE.Vector3(0, 1, 0);
 function computeInput() {
   let ix = 0, iy = 0;
   if (keysDown['w'] || keysDown['arrowup']) iy -= 1;
@@ -1029,10 +1126,12 @@ function updatePlayer(dt) {
   const { ix, iy } = computeInput();
   player.moving = false;
   if (!player.locked && (ix !== 0 || iy !== 0)) {
-    const azimuth = controls.getAzimuthalAngle();
-    const forward = new THREE.Vector3(Math.sin(azimuth), 0, Math.cos(azimuth));
-    const right = new THREE.Vector3(Math.cos(azimuth), 0, -Math.sin(azimuth));
-    moveDir.set(0, 0, 0).addScaledVector(right, ix).addScaledVector(forward, -iy).normalize();
+    // Direção real da câmera (pra frente = pra "dentro da tela"), não o offset câmera->alvo (que apontava ao contrário e fazia andar pra trás)
+    camera.getWorldDirection(camForward);
+    camForward.y = 0;
+    if (camForward.lengthSq() < 1e-6) camForward.set(0, 0, -1); else camForward.normalize();
+    camRight.crossVectors(camForward, WORLD_UP).normalize();
+    moveDir.set(0, 0, 0).addScaledVector(camRight, ix).addScaledVector(camForward, -iy).normalize();
     player.moveDir.copy(moveDir);
     const nx = player.pos.x + moveDir.x * player.speed * dt;
     const nz = player.pos.z + moveDir.z * player.speed * dt;
@@ -1153,6 +1252,54 @@ $('soundToggle').addEventListener('click', () => {
 });
 
 /* ============================================================
+   CONTROLES ADAPTATIVOS - PC x CELULAR (Minecraft-style no touch)
+   ============================================================ */
+(function setupAdaptiveControls() {
+  const style = document.createElement('style');
+  style.textContent = `
+    #mcActionButtons { position: fixed; right: 18px; bottom: 22px; display: flex; flex-direction: column; gap: 14px; z-index: 40; }
+    .mc-btn { width: 62px; height: 62px; border-radius: 14px; border: 3px solid rgba(255,255,255,0.55);
+      background: linear-gradient(180deg, rgba(60,50,45,0.55), rgba(20,16,14,0.65)); backdrop-filter: blur(2px);
+      display: flex; align-items: center; justify-content: center; font-size: 26px; color: #fff;
+      -webkit-tap-highlight-color: transparent; user-select: none; touch-action: manipulation;
+      box-shadow: 0 3px 0 rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.25); }
+    .mc-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,0.35); background: rgba(0,0,0,0.55); }
+    .mc-btn--flower { border-color: #ff9ec7; }
+    #pcHint { position: fixed; left: 18px; bottom: 18px; z-index: 40; font: 12px/1.4 system-ui, sans-serif;
+      color: #fff; background: rgba(0,0,0,0.35); padding: 6px 10px; border-radius: 8px; letter-spacing: 0.2px; }
+    body:not(.is-touch) #mcActionButtons { display: none !important; }
+    body.is-touch #pcHint { display: none !important; }
+  `;
+  document.head.appendChild(style);
+
+  if (isTouch) {
+    // Some com qualquer texto/lembrete de tecla de PC que já exista na tela
+    const legacyPrompt = $('interactPrompt');
+    if (legacyPrompt) legacyPrompt.classList.add('mobile-mode');
+
+    const wrap = document.createElement('div');
+    wrap.id = 'mcActionButtons';
+    wrap.innerHTML = `
+      <div class="mc-btn mc-btn--flower" id="flowerBtn" aria-label="Rajada de flores">🌸</div>
+      <div class="mc-btn" id="mcInteractBtn" aria-label="Interagir">✋</div>
+    `;
+    document.body.appendChild(wrap);
+    $('flowerBtn').addEventListener('touchstart', (e) => { e.preventDefault(); triggerFlowerBurst(); }, { passive: false });
+    $('flowerBtn').addEventListener('click', () => triggerFlowerBurst());
+    $('mcInteractBtn').addEventListener('touchstart', (e) => { e.preventDefault(); tryInteract(); }, { passive: false });
+    $('mcInteractBtn').addEventListener('click', () => tryInteract());
+    // Se existir o botão antigo de interação, deixa ele visível também (compatibilidade), sem duplicar textos de tecla
+    const oldActionBtn = $('actionBtn');
+    if (oldActionBtn) oldActionBtn.style.display = 'none'; // substituído pelo mcInteractBtn
+  } else {
+    const hint = document.createElement('div');
+    hint.id = 'pcHint';
+    hint.textContent = 'WASD / setas: mover • E ou espaço: interagir • F: rajada de flores';
+    document.body.appendChild(hint);
+  }
+})();
+
+/* ============================================================
    TITLE / LOADING FLOW - CORRIGIDO PRA NÃO FICAR CARREGANDO
    ============================================================ */
 const loadingManager = new THREE.LoadingManager();
@@ -1175,9 +1322,14 @@ $('startBtn').addEventListener('click', () => {
   $('titleScreen').classList.add('hidden');
   ensureAudio();
 });
-$('howToBtn').addEventListener('click', () => {
-  toast('Use WASD/setas (ou o manete) para andar, e o botão / tecla E para interagir.');
-});
+const howToBtnEl = $('howToBtn');
+if (howToBtnEl) {
+  howToBtnEl.addEventListener('click', () => {
+    toast(isTouch
+      ? '👆 Use o manete pra andar. Toque em ✋ para interagir e em 🌸 para a rajada de flores.'
+      : '⌨️ Use WASD ou as setas pra andar. Pressione E (ou espaço) para interagir e F para a rajada de flores.');
+  });
+}
 
 /* ============================================================
    MAIN LOOP - COM BONDINHO ANIMADO
@@ -1187,8 +1339,10 @@ function animate() {
   requestAnimationFrame(animate);
   const dt = Math.min(0.05, clock.getDelta());
   const t = clock.elapsedTime;
+  if (flowerPowerCooldown > 0) flowerPowerCooldown = Math.max(0, flowerPowerCooldown - dt);
   updatePlayer(dt);
   updateBobbers(t);
+  updateFlowerPower(dt);
   const eleBob = Math.sin(t * 1.3) * 0.02;
   eleGroup.position.y = eleBob;
   // Anima bondinho Pão de Açúcar
@@ -1199,20 +1353,19 @@ function animate() {
     if(rioGroup.userData.bondinho1) rioGroup.userData.bondinho1.position.copy(p1);
     if(rioGroup.userData.bondinho2) rioGroup.userData.bondinho2.position.copy(p2);
   }
-  // Anima bondinho de Santa Teresa na rua
+  // Anima as gaivotas sobrevoando o mar em círculos suaves
+  if (rioGroup && rioGroup.userData.seagulls) {
+    rioGroup.userData.seagulls.forEach((s) => {
+      const ang = t * s.speed + s.phase;
+      s.mesh.position.set(s.cx + Math.cos(ang) * s.radius, s.baseY + Math.sin(t * 0.8 + s.phase) * 0.6, s.cz + Math.sin(ang) * s.radius);
+      s.mesh.rotation.y = -ang - Math.PI / 2;
+    });
+  }
+  // Anima bondinho de Santa Teresa na rua (fica sempre além da varanda, nunca cruza a casa)
   if(rioGroup && rioGroup.userData.tramGroup){
     const tram=rioGroup.userData.tramGroup;
-    // Vai e volta na rua
-    tram.position.z = -15 - Math.sin(t*0.3)*40;
+    tram.position.z = rioGroup.userData.tramZCentro - Math.sin(t*0.3) * rioGroup.userData.tramAmplitude;
     tram.position.x = Math.sin(t*0.3)*0.5;
-  }
-  // Bondinho se movendo
-  if (rioGroup && rioGroup.userData.cableCurve) {
-    const c = rioGroup.userData.cableCurve;
-    const p1 = c.getPoint((t*0.04)%1);
-    const p2 = c.getPoint(((t*0.04)+0.5)%1);
-    if(rioGroup.userData.bondinho1) rioGroup.userData.bondinho1.position.copy(p1);
-    if(rioGroup.userData.bondinho2) rioGroup.userData.bondinho2.position.copy(p2);
   }
   controls.update();
   renderer.render(scene, camera);
