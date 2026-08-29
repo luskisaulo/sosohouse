@@ -327,116 +327,101 @@ cyl(0.05, 0.05, 0.75, MAT.ferro, 0, 0.4, -19);
 });
 box(ZONE.sala.x1 - ZONE.sala.x0 - 3, 0.06, 0.5, MAT.dourado, 0, 0.02, ZONE.sala.z0 + 0.1);
 
+
 /* ============================================================
-   NOVO: CENÁRIO CARIOCA EXTRA (SEM APAGAR NADA) - PÃO DE AÇÚCAR, BONDINHO, RUA, SOL
+   NOVO: CENÁRIO CARIOCA ULTRA COMPLETO - RUA, BONDINHO, PÃO, SOL, PRAIA
    ============================================================ */
 const rioGroup = new THREE.Group();
 world.add(rioGroup);
 
-// Chão gigante verde (mata atlântica)
-const bigGround = new THREE.Mesh(new THREE.PlaneGeometry(400,400), new THREE.MeshStandardMaterial({color:'#1d4a2e', roughness:1}));
+// Chão gigante mata atlântica
+const bigGround = new THREE.Mesh(new THREE.PlaneGeometry(500,500), new THREE.MeshStandardMaterial({color:'#1d4a2e', roughness:1}));
 bigGround.rotation.x=-Math.PI/2; bigGround.position.y=-0.35; bigGround.receiveShadow=true;
 rioGroup.add(bigGround);
 
-// Rua de Santa Teresa descendo com trilhos
-const streetMat = new THREE.MeshStandardMaterial({color:'#5a5a5a', roughness:0.9});
-const street = new THREE.Mesh(new THREE.PlaneGeometry(9, 120), streetMat);
-street.rotation.x=-Math.PI/2; street.position.set(0,-0.3,-45); rioGroup.add(street);
-const railMat = new THREE.MeshStandardMaterial({color:'#2a2a2a', metalness:0.6, roughness:0.4});
-for(let side of [-1.3,1.3]){
-  const rail = new THREE.Mesh(new THREE.BoxGeometry(0.18,0.08,120), railMat);
-  rail.position.set(side,-0.25,-45); rioGroup.add(rail);
+// Rua de Santa Teresa descendo - paralelepípedo bem visível
+const streetMat = new THREE.MeshStandardMaterial({color:'#6a6a6a', roughness:0.95});
+const street = new THREE.Mesh(new THREE.PlaneGeometry(10, 160), streetMat);
+street.rotation.x=-Math.PI/2; street.position.set(0,-0.28,-55); street.receiveShadow=true;
+rioGroup.add(street);
+// Trilhos do bondinho de Santa Teresa (2 trilhos)
+const railMat = new THREE.MeshStandardMaterial({color:'#2a2a2a', metalness:0.7, roughness:0.3});
+for(let side of [-1.4,1.4]){
+  const rail = new THREE.Mesh(new THREE.BoxGeometry(0.22,0.12,160), railMat);
+  rail.position.set(side,-0.22,-55); rioGroup.add(rail);
 }
+// Bondinho de Santa Teresa - TRAM que anda na rua (não é o do Pão de Açúcar)
+const tramGroup = new THREE.Group();
+const tramBase = new THREE.Mesh(new THREE.BoxGeometry(1.8,1.0,3.2), new THREE.MeshStandardMaterial({color:'#ffcc00'}));
+tramBase.position.y=0.6; tramGroup.add(tramBase);
+const tramRoof = new THREE.Mesh(new THREE.BoxGeometry(1.9,0.15,3.3), new THREE.MeshStandardMaterial({color:'#8a4a2a'}));
+tramRoof.position.y=1.2; tramGroup.add(tramRoof);
+for(let i=0;i<4;i++){ const wheel=new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.18,0.1,8), new THREE.MeshStandardMaterial({color:'#1a1a1a'})); wheel.rotation.z=Math.PI/2; wheel.position.set(i<2?-0.9:0.9,0.18, i%2==0 ? -1.0 : 1.0); tramGroup.add(wheel); }
+tramGroup.position.set(0,0,-15);
+tramGroup.castShadow=true;
+rioGroup.add(tramGroup);
+rioGroup.userData.tramGroup=tramGroup;
 
-// Pão de Açúcar - MELHORADO (2 morros icônicos)
-const paoMat = new THREE.MeshStandardMaterial({color:'#3a4a5a', roughness:0.85});
-const paoBase = new THREE.Mesh(new THREE.CylinderGeometry(3,4.5,4.5,12), paoMat);
-paoBase.position.set(18, 2, -52); rioGroup.add(paoBase);
-const paoTop = new THREE.Mesh(new THREE.SphereGeometry(3.2, 18, 14, 0, Math.PI*2, 0, Math.PI*0.58), paoMat);
-paoTop.position.set(18, 5.2, -52); paoTop.scale.set(1,1.35,1); rioGroup.add(paoTop);
-const urca = new THREE.Mesh(new THREE.ConeGeometry(2.8,4.2,10), paoMat);
-urca.position.set(12.5, 1.8, -49); rioGroup.add(urca);
-
-// Corcovado + Cristo
-const greenHillMat = new THREE.MeshStandardMaterial({color:'#1e5a3a', roughness:0.9});
-const corcovado = new THREE.Mesh(new THREE.ConeGeometry(7,9,8), greenHillMat);
-corcovado.position.set(-20, 3, -68); rioGroup.add(corcovado);
-const cristoBase = new THREE.Mesh(new THREE.BoxGeometry(0.35,1.3,0.35), new THREE.MeshStandardMaterial({color:'#e8e0d0'}));
-cristoBase.position.set(-20, 9.8, -68); rioGroup.add(cristoBase);
-const cristoBraco = new THREE.Mesh(new THREE.BoxGeometry(1.7,0.22,0.22), new THREE.MeshStandardMaterial({color:'#e8e0d0'}));
-cristoBraco.position.set(-20, 10.5, -68); rioGroup.add(cristoBraco);
-
-// Mar da Baía
-const waterMat = new THREE.MeshStandardMaterial({color:'#1a5a7a', roughness:0.1, metalness:0.15, transparent:true, opacity:0.8});
-const water = new THREE.Mesh(new THREE.PlaneGeometry(200,80), waterMat);
-water.rotation.x=-Math.PI/2; water.position.set(5,-0.45,-75); rioGroup.add(water);
-
-// Bondinho - cabo + 2 cabines animadas
+// Pão de Açúcar - 2 morros icônicos bem detalhados
+const paoMat = new THREE.MeshStandardMaterial({color:'#4a5a6a', roughness:0.8});
+const paoBase = new THREE.Mesh(new THREE.CylinderGeometry(3.2,4.8,5,14), paoMat); paoBase.position.set(22,2.2,-58); paoBase.castShadow=true; rioGroup.add(paoBase);
+const paoTop = new THREE.Mesh(new THREE.SphereGeometry(3.4,20,16,0,Math.PI*2,0,Math.PI*0.6), paoMat); paoTop.position.set(22,6,-58); paoTop.scale.set(1,1.4,1); paoTop.castShadow=true; rioGroup.add(paoTop);
+const urca = new THREE.Mesh(new THREE.ConeGeometry(3.0,4.5,12), paoMat); urca.position.set(16,2,-54); urca.castShadow=true; rioGroup.add(urca);
+// Cabo do bondinho do Pão de Açúcar
 const cableMat = new THREE.MeshStandardMaterial({color:'#1a1a1a'});
-const cableCurve = new THREE.CatmullRomCurve3([
-  new THREE.Vector3(0,12,-23), new THREE.Vector3(7,19,-36), new THREE.Vector3(12,17,-49), new THREE.Vector3(18,9,-52)
-]);
-const cableGeo = new THREE.TubeGeometry(cableCurve, 24, 0.025, 4, false);
+const cableCurve = new THREE.CatmullRomCurve3([ new THREE.Vector3(0,12,-23), new THREE.Vector3(8,20,-38), new THREE.Vector3(15,18,-52), new THREE.Vector3(22,10,-58) ]);
+const cableGeo = new THREE.TubeGeometry(cableCurve, 28, 0.03, 6, false);
 const cable = new THREE.Mesh(cableGeo, cableMat); rioGroup.add(cable);
-const bondinhoGeo = new THREE.BoxGeometry(0.7,0.55,0.9);
+const bondinhoGeo = new THREE.BoxGeometry(0.8,0.6,1.0);
 const bondinho1 = new THREE.Mesh(bondinhoGeo, new THREE.MeshStandardMaterial({color:'#ffcc00'})); bondinho1.name='bondinho1'; rioGroup.add(bondinho1);
 const bondinho2 = new THREE.Mesh(bondinhoGeo, new THREE.MeshStandardMaterial({color:'#e63946'})); bondinho2.name='bondinho2'; rioGroup.add(bondinho2);
 rioGroup.userData.cableCurve=cableCurve; rioGroup.userData.bondinho1=bondinho1; rioGroup.userData.bondinho2=bondinho2;
 
-// Casinhas coloridas de Santa Teresa ao redor
-const houseColors = ['#E2A83B','#D6488C','#1B4D6B','#B85A3C','#1E6B4F','#f4ede0'];
-for(let i=0;i<18;i++){
+// Corcovado + Cristo Redentor
+const greenHillMat = new THREE.MeshStandardMaterial({color:'#1e5a3a', roughness:0.9});
+const corcovado = new THREE.Mesh(new THREE.ConeGeometry(8,10,8), greenHillMat); corcovado.position.set(-24,3.5,-72); corcovado.castShadow=true; rioGroup.add(corcovado);
+const cristoBase = new THREE.Mesh(new THREE.BoxGeometry(0.4,1.5,0.4), new THREE.MeshStandardMaterial({color:'#e8e0d0'})); cristoBase.position.set(-24,10.5,-72); rioGroup.add(cristoBase);
+const cristoBraco = new THREE.Mesh(new THREE.BoxGeometry(2.0,0.25,0.25), new THREE.MeshStandardMaterial({color:'#e8e0d0'})); cristoBraco.position.set(-24,11.2,-72); rioGroup.add(cristoBraco);
+
+// Praia + Areia + Mar da Baía de Guanabara
+const sandMat = new THREE.MeshStandardMaterial({color:'#e8d5a8', roughness:1});
+const sand = new THREE.Mesh(new THREE.PlaneGeometry(120,20), sandMat); sand.rotation.x=-Math.PI/2; sand.position.set(10,-0.4,-68); rioGroup.add(sand);
+const waterMat = new THREE.MeshStandardMaterial({color:'#1a6a8a', roughness:0.1, metalness:0.2, transparent:true, opacity:0.85});
+const water = new THREE.Mesh(new THREE.PlaneGeometry(300,120), waterMat); water.rotation.x=-Math.PI/2; water.position.set(20,-0.45,-85); rioGroup.add(water);
+
+// Sol 3D bem visível + brilho
+const sunMesh = new THREE.Mesh(new THREE.SphereGeometry(3.0,20,16), new THREE.MeshBasicMaterial({color:'#ffaa33'}));
+sunMesh.position.set(-28,28,-50); rioGroup.add(sunMesh);
+const sunGlow = new THREE.Mesh(new THREE.SphereGeometry(5.0,16,12), new THREE.MeshBasicMaterial({color:'#ffcc66', transparent:true, opacity:0.25}));
+sunGlow.position.copy(sunMesh.position); rioGroup.add(sunGlow);
+const sunLight = new THREE.PointLight('#ffb852', 2, 80); sunLight.position.copy(sunMesh.position); rioGroup.add(sunLight);
+
+// Casinhas coloridas de Santa Teresa ao redor (mais)
+const houseColors = ['#E2A83B','#D6488C','#1B4D6B','#B85A3C','#1E6B4F','#f4ede0','#ff7eb0'];
+for(let i=0;i<28;i++){
   const col = houseColors[Math.floor(Math.random()*houseColors.length)];
   const mat = new THREE.MeshStandardMaterial({color:col, roughness:0.8});
-  const w=1.5+Math.random()*1.5, h=1.2+Math.random()*1.2, d=1.2+Math.random();
-  const ang=Math.random()*Math.PI*2, rad=14+Math.random()*16;
-  const x=Math.cos(ang)*rad, z=Math.sin(ang)*rad -8;
-  if (Math.abs(x)<8 && z>-12 && z<20) continue;
-  const house=new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mat);
-  house.position.set(x,h/2-0.3,z); house.castShadow=true; rioGroup.add(house);
-  const roof=new THREE.Mesh(new THREE.ConeGeometry(w*0.7,0.6,4), new THREE.MeshStandardMaterial({color:'#8a4a3a'}));
-  roof.position.set(x,h-0.05,z); roof.rotation.y=Math.PI/4; rioGroup.add(roof);
+  const w=1.5+Math.random()*1.8, h=1.2+Math.random()*1.5, d=1.2+Math.random()*1.2;
+  const ang=Math.random()*Math.PI*2, rad=16+Math.random()*22;
+  const x=Math.cos(ang)*rad, z=Math.sin(ang)*rad -10;
+  if (Math.abs(x)<9 && z>-14 && z<20) continue;
+  const house=new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mat); house.position.set(x,h/2-0.3,z); house.castShadow=true; rioGroup.add(house);
+  const roof=new THREE.Mesh(new THREE.ConeGeometry(w*0.7,0.6,4), new THREE.MeshStandardMaterial({color:'#8a4a3a'})); roof.position.set(x,h-0.05,z); roof.rotation.y=Math.PI/4; rioGroup.add(roof);
 }
 
-// Palmeiras
+// Palmeiras tropicais
 function palm(x,z,s=1){
-  const trunk=new THREE.Mesh(new THREE.CylinderGeometry(0.08*s,0.12*s,2.5*s,8), new THREE.MeshStandardMaterial({color:'#5a3a2a'}));
-  trunk.position.set(x,1.25*s-0.3,z); rioGroup.add(trunk);
-  for(let i=0;i<5;i++){
-    const leaf=new THREE.Mesh(new THREE.ConeGeometry(0.15*s,1.2*s,4), new THREE.MeshStandardMaterial({color:'#2e7d4f'}));
-    leaf.position.set(x,2.6*s-0.3,z); leaf.rotation.z=(i/5)*Math.PI*2; leaf.rotation.x=0.8; rioGroup.add(leaf);
+  const trunk=new THREE.Mesh(new THREE.CylinderGeometry(0.08*s,0.12*s,2.8*s,8), new THREE.MeshStandardMaterial({color:'#5a3a2a'}));
+  trunk.position.set(x,1.4*s-0.3,z); trunk.castShadow=true; rioGroup.add(trunk);
+  for(let i=0;i<6;i++){
+    const leaf=new THREE.Mesh(new THREE.ConeGeometry(0.16*s,1.3*s,5), new THREE.MeshStandardMaterial({color:'#2e7d4f'}));
+    leaf.position.set(x,2.9*s-0.3,z); leaf.rotation.z=(i/6)*Math.PI*2; leaf.rotation.x=0.7; leaf.castShadow=true; rioGroup.add(leaf);
   }
 }
-for(let i=0;i<12;i++){
-  const ang=Math.random()*Math.PI*2, rad=10+Math.random()*20;
-  palm(Math.cos(ang)*rad, Math.sin(ang)*rad-6, 0.8+Math.random()*0.5);
+for(let i=0;i<18;i++){
+  const ang=Math.random()*Math.PI*2, rad=12+Math.random()*28;
+  palm(Math.cos(ang)*rad, Math.sin(ang)*rad-8, 0.9+Math.random()*0.6);
 }
-
-// Sol 3D
-const sunMesh = new THREE.Mesh(new THREE.SphereGeometry(2.2,16,12), new THREE.MeshBasicMaterial({color:'#ffaa33'}));
-sunMesh.position.set(-22,24,-45); rioGroup.add(sunMesh);
-
-// Luzes da cidade + estrelas (já existiam, mas reforçamos)
-const cityLightsGeo = new THREE.BufferGeometry();
-const cityPos = [];
-for (let i = 0; i < 220; i++) cityPos.push((Math.random() - 0.5) * 60, Math.random() * 3, -40 - Math.random() * 20);
-cityLightsGeo.setAttribute('position', new THREE.Float32BufferAttribute(cityPos, 3));
-const cityLights = new THREE.Points(cityLightsGeo, new THREE.PointsMaterial({ color: '#ffdca0', size: 0.12, transparent: true, opacity: 0.85 }));
-world.add(cityLights);
-const starGeo = new THREE.BufferGeometry();
-const starPos = [];
-for (let i = 0; i < 250; i++) starPos.push((Math.random() - 0.5) * 90, 12 + Math.random() * 30, -30 - Math.random() * 40);
-starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starPos, 3));
-const starMat = new THREE.PointsMaterial({ color: '#ffffff', size: 0.15, transparent: true, opacity: 0 });
-const stars = new THREE.Points(starGeo, starMat);
-world.add(stars);
-
-// Silhueta antiga mantida (compatibilidade)
-const silhMat = new THREE.MeshBasicMaterial({ color: '#241a3a', fog: true });
-const paoDeAcucar = new THREE.Mesh(new THREE.SphereGeometry(4.2, 20, 16, 0, Math.PI * 2, 0, Math.PI * 0.55), silhMat);
-paoDeAcucar.scale.set(1, 1.5, 1);
-paoDeAcucar.position.set(14, 2.2, -46);
-world.add(paoDeAcucar);
 
 /* ============================================================
    BONECO MINECRAFT - SKIN TROCÁVEL - VOCÊ FAZ A SKIN
@@ -471,6 +456,12 @@ function createMinecraftSkin(type){
     ctx.fillStyle='#fffaf0'; ctx.fillRect(20,20,8,20);
     ctx.fillStyle='#E8C468'; ctx.fillRect(20,36,8,2);
     ctx.fillStyle='#f5c9a3'; ctx.fillRect(44,20,4,6); ctx.fillRect(36,20,4,6);
+  } else if(type==='lucas_formal'){
+    ctx.fillStyle='#c98a5e'; ctx.fillRect(8,8,8,8);
+    ctx.fillStyle='#3a2818'; ctx.fillRect(8,0,8,8);
+    ctx.fillStyle='#1B4D6B'; ctx.fillRect(20,20,8,12); // camisa azul
+    ctx.fillStyle='#2b3550'; ctx.fillRect(4,20,12,12);
+    ctx.fillStyle='#c98a5e'; ctx.fillRect(44,20,4,12); ctx.fillRect(36,20,4,12);
   } else if(type==='lucas'){
     ctx.fillStyle='#c98a5e'; ctx.fillRect(8,8,8,8);
     ctx.fillStyle='#3a2818'; ctx.fillRect(8,0,8,8);
@@ -514,6 +505,7 @@ function createMinecraftCharacter(skinTex){
 const skinSofiaTropical = createMinecraftSkin('sofia_tropical');
 const skinSofiaPrincess = createMinecraftSkin('sofia_princess');
 const skinLucas = createMinecraftSkin('lucas');
+const skinLucas2 = createMinecraftSkin('lucas_formal'); // segunda skin do Lucas
 
 const sofiaTropical = createMinecraftCharacter(skinSofiaTropical);
 const sofiaPrincess = createMinecraftCharacter(skinSofiaPrincess);
@@ -1199,6 +1191,21 @@ function animate() {
   updateBobbers(t);
   const eleBob = Math.sin(t * 1.3) * 0.02;
   eleGroup.position.y = eleBob;
+  // Anima bondinho Pão de Açúcar
+  if(rioGroup && rioGroup.userData.cableCurve){
+    const c=rioGroup.userData.cableCurve;
+    const p1=c.getPoint((t*0.04)%1);
+    const p2=c.getPoint(((t*0.04)+0.5)%1);
+    if(rioGroup.userData.bondinho1) rioGroup.userData.bondinho1.position.copy(p1);
+    if(rioGroup.userData.bondinho2) rioGroup.userData.bondinho2.position.copy(p2);
+  }
+  // Anima bondinho de Santa Teresa na rua
+  if(rioGroup && rioGroup.userData.tramGroup){
+    const tram=rioGroup.userData.tramGroup;
+    // Vai e volta na rua
+    tram.position.z = -15 - Math.sin(t*0.3)*40;
+    tram.position.x = Math.sin(t*0.3)*0.5;
+  }
   // Bondinho se movendo
   if (rioGroup && rioGroup.userData.cableCurve) {
     const c = rioGroup.userData.cableCurve;
