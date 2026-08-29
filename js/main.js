@@ -81,12 +81,12 @@ function canvasTex(draw, w = 256, h = 256, repeat = [1, 1]) {
 const woodTex = canvasTex((ctx, w, h) => {
   ctx.fillStyle = '#8a5a3c'; ctx.fillRect(0, 0, w, h);
   for (let i = 0; i < 9; i++) {
-    ctx.fillStyle = i % 2 ? '#7c4f34' : '#95643f';
+    ctx.fillStyle = i % 2? '#7c4f34' : '#95643f';
     ctx.fillRect(0, i * (h / 9), w, h / 9 - 2);
   }
   ctx.globalAlpha = 0.12;
   for (let i = 0; i < 400; i++) {
-    ctx.fillStyle = Math.random() > 0.5 ? '#000' : '#fff';
+    ctx.fillStyle = Math.random() > 0.5? '#000' : '#fff';
     ctx.fillRect(Math.random() * w, Math.random() * h, 20, 1);
   }
 }, 256, 256, [6, 10]);
@@ -94,7 +94,7 @@ const woodTex = canvasTex((ctx, w, h) => {
 const deckTex = canvasTex((ctx, w, h) => {
   ctx.fillStyle = '#6b4530'; ctx.fillRect(0, 0, w, h);
   for (let i = 0; i < 7; i++) {
-    ctx.fillStyle = i % 2 ? '#5f3c29' : '#7a4f37';
+    ctx.fillStyle = i % 2? '#5f3c29' : '#7a4f37';
     ctx.fillRect(0, i * (h / 7), w, h / 7 - 3);
   }
 }, 256, 256, [8, 14]);
@@ -206,7 +206,7 @@ function pottedPlant(x, z, scale = 1) {
   cyl(0.32 * scale, 0.26 * scale, 0.5 * scale, MAT.terracota, x, 0.25 * scale, z);
   const g = new THREE.Group();
   for (let i = 0; i < 6; i++) {
-    const leaf = new THREE.Mesh(new THREE.ConeGeometry(0.14 * scale, 0.9 * scale, 5), i % 2 ? MAT.leaf : MAT.leafDark);
+    const leaf = new THREE.Mesh(new THREE.ConeGeometry(0.14 * scale, 0.9 * scale, 5), i % 2? MAT.leaf : MAT.leafDark);
     leaf.position.set((Math.random() - 0.5) * 0.3 * scale, 0.75 * scale, (Math.random() - 0.5) * 0.3 * scale);
     leaf.rotation.z = (Math.random() - 0.5) * 0.6;
     leaf.castShadow = true;
@@ -218,7 +218,7 @@ function pottedPlant(x, z, scale = 1) {
 [[-5, 10], [5, 10], [-5, 17], [5, 17], [-3, 18.3], [3, 18.3]].forEach(([x, z]) => pottedPlant(x, z, 1 + Math.random() * 0.4));
 for (let z = 9; z < 19; z += 1.6) {
   [ZONE.patio.x0, ZONE.patio.x1].forEach((x) => {
-    sph(0.28 + Math.random() * 0.2, MAT.magenta, x + (x < 0 ? 0.3 : -0.3), 1.6 + Math.random() * 1.2, z);
+    sph(0.28 + Math.random() * 0.2, MAT.magenta, x + (x < 0? 0.3 : -0.3), 1.6 + Math.random() * 1.2, z);
   });
 }
 
@@ -237,7 +237,7 @@ box(0.22, 0.6, 1.0, MAT.mostarda, -2.35, 0.65, 6.5);
 box(3.4, 0.03, 2.2, new THREE.MeshStandardMaterial({ color: '#a8433a', roughness: 0.9 }), -2, 0.02, 4.6);
 box(1.8, 2.2, 0.4, MAT.wood, 5.4, 1.1, 6.8);
 for (let i = 0; i < 4; i++) box(1.6, 0.06, 0.36, MAT.terracota, 5.4, 0.35 + i * 0.55, 6.8);
-for (let i = 0; i < 10; i++) box(0.14, 0.4, 0.28, i % 3 === 0 ? MAT.turquesa : (i % 3 === 1 ? MAT.magenta : MAT.esmeralda), 4.75 + i * 0.15, 1.85, 6.78);
+for (let i = 0; i < 10; i++) box(0.14, 0.4, 0.28, i % 3 === 0? MAT.turquesa : (i % 3 === 1? MAT.magenta : MAT.esmeralda), 4.75 + i * 0.15, 1.85, 6.78);
 function easelLeg(x, z, rz) { const l = box(0.07, 1.5, 0.07, MAT.wood, x, 0.75, z); l.rotation.z = rz; return l; }
 easelLeg(0, 0, 0.18); easelLeg(-0.55, 0.35, -0.22); easelLeg(0.55, 0.35, -0.22);
 const canvasTexture = canvasTex((ctx, w, h) => {
@@ -261,7 +261,7 @@ for (let z = -9; z <= -2; z += 3.5) {
 }
 for (let z = -9; z < -1; z += 2.5) {
   [ZONE.sala.x0, ZONE.sala.x1].forEach((x) => {
-    const s = sph(0.1, new THREE.MeshStandardMaterial({ color: '#ffdca0', emissive: '#ffb852', emissiveIntensity: 1.4 }), x + (x < 0 ? 0.3 : -0.3), 2.1, z);
+    const s = sph(0.1, new THREE.MeshStandardMaterial({ color: '#ffdca0', emissive: '#ffb852', emissiveIntensity: 1.4 }), x + (x < 0? 0.3 : -0.3), 2.1, z);
     const pl = new THREE.PointLight('#ffb852', 4, 5);
     pl.position.copy(s.position);
     world.add(pl);
@@ -327,53 +327,42 @@ cyl(0.05, 0.05, 0.75, MAT.ferro, 0, 0.4, -19);
 });
 box(ZONE.sala.x1 - ZONE.sala.x0 - 3, 0.06, 0.5, MAT.dourado, 0, 0.02, ZONE.sala.z0 + 0.1);
 
-
 /* ============================================================
-   NOVO: CENÁRIO CARIOCA ULTRA COMPLETO - RUA, BONDINHO, PÃO, SOL, PRAIA
+   CENÁRIO CARIOCA - INTACTO
    ============================================================ */
 const rioGroup = new THREE.Group();
 world.add(rioGroup);
-
-// Chão gigante mata atlântica
 const bigGround = new THREE.Mesh(new THREE.PlaneGeometry(500,500), new THREE.MeshStandardMaterial({color:'#1d4a2e', roughness:1}));
 bigGround.rotation.x=-Math.PI/2; bigGround.position.y=-0.35; bigGround.receiveShadow=true;
 rioGroup.add(bigGround);
-
-// Rua de Santa Teresa descendo - paralelepípedo bem visível
-// IMPORTANTE: a casa ocupa x:[-7.2,7.2] e z:[-23.5,19] (varanda é o cômodo mais "de fora", com z0=-23.5).
-// A rua/trilho/bondinho ficam TODOS além de z=-23.5 (visíveis a partir da varanda, sem cruzar dentro da casa).
-const RUA_Z_CENTRO = -78; // centro da rua, bem além da varanda
-const RUA_Z_METADE = 45;  // metade do comprimento da rua
+const RUA_Z_CENTRO = -78;
+const RUA_Z_METADE = 45;
 const streetMat = new THREE.MeshStandardMaterial({color:'#6a6a6a', roughness:0.95});
 const street = new THREE.Mesh(new THREE.PlaneGeometry(10, RUA_Z_METADE * 2), streetMat);
 street.rotation.x=-Math.PI/2; street.position.set(0,-0.28,RUA_Z_CENTRO); street.receiveShadow=true;
 rioGroup.add(street);
-// Trilhos do bondinho de Santa Teresa (2 trilhos)
 const railMat = new THREE.MeshStandardMaterial({color:'#2a2a2a', metalness:0.7, roughness:0.3});
 for(let side of [-1.4,1.4]){
   const rail = new THREE.Mesh(new THREE.BoxGeometry(0.22,0.12,RUA_Z_METADE * 2), railMat);
   rail.position.set(side,-0.22,RUA_Z_CENTRO); rioGroup.add(rail);
 }
-// Bondinho de Santa Teresa - TRAM que anda na rua (não é o do Pão de Açúcar)
 const tramGroup = new THREE.Group();
 const tramBase = new THREE.Mesh(new THREE.BoxGeometry(1.8,1.0,3.2), new THREE.MeshStandardMaterial({color:'#ffcc00'}));
 tramBase.position.y=0.6; tramGroup.add(tramBase);
 const tramRoof = new THREE.Mesh(new THREE.BoxGeometry(1.9,0.15,3.3), new THREE.MeshStandardMaterial({color:'#8a4a2a'}));
 tramRoof.position.y=1.2; tramGroup.add(tramRoof);
-for(let i=0;i<4;i++){ const wheel=new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.18,0.1,8), new THREE.MeshStandardMaterial({color:'#1a1a1a'})); wheel.rotation.z=Math.PI/2; wheel.position.set(i<2?-0.9:0.9,0.18, i%2==0 ? -1.0 : 1.0); tramGroup.add(wheel); }
+for(let i=0;i<4;i++){ const wheel=new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.18,0.1,8), new THREE.MeshStandardMaterial({color:'#1a1a1a'})); wheel.rotation.z=Math.PI/2; wheel.position.set(i<2?-0.9:0.9,0.18, i%2==0? -1.0 : 1.0); tramGroup.add(wheel); }
 tramGroup.position.set(0,0,RUA_Z_CENTRO);
 tramGroup.castShadow=true;
 rioGroup.add(tramGroup);
 rioGroup.userData.tramGroup=tramGroup;
 rioGroup.userData.tramZCentro = RUA_Z_CENTRO;
-rioGroup.userData.tramAmplitude = RUA_Z_METADE - 5; // margem de segurança nas pontas dos trilhos
+rioGroup.userData.tramAmplitude = RUA_Z_METADE - 5;
 
-// Pão de Açúcar - 2 morros icônicos bem detalhados
 const paoMat = new THREE.MeshStandardMaterial({color:'#4a5a6a', roughness:0.8});
 const paoBase = new THREE.Mesh(new THREE.CylinderGeometry(3.2,4.8,5,14), paoMat); paoBase.position.set(22,2.2,-58); paoBase.castShadow=true; rioGroup.add(paoBase);
 const paoTop = new THREE.Mesh(new THREE.SphereGeometry(3.4,20,16,0,Math.PI*2,0,Math.PI*0.6), paoMat); paoTop.position.set(22,6,-58); paoTop.scale.set(1,1.4,1); paoTop.castShadow=true; rioGroup.add(paoTop);
 const urca = new THREE.Mesh(new THREE.ConeGeometry(3.0,4.5,12), paoMat); urca.position.set(16,2,-54); urca.castShadow=true; rioGroup.add(urca);
-// Cabo do bondinho do Pão de Açúcar
 const cableMat = new THREE.MeshStandardMaterial({color:'#1a1a1a'});
 const cableCurve = new THREE.CatmullRomCurve3([ new THREE.Vector3(0,12,-23), new THREE.Vector3(8,20,-38), new THREE.Vector3(15,18,-52), new THREE.Vector3(22,10,-58) ]);
 const cableGeo = new THREE.TubeGeometry(cableCurve, 28, 0.03, 6, false);
@@ -383,26 +372,22 @@ const bondinho1 = new THREE.Mesh(bondinhoGeo, new THREE.MeshStandardMaterial({co
 const bondinho2 = new THREE.Mesh(bondinhoGeo, new THREE.MeshStandardMaterial({color:'#e63946'})); bondinho2.name='bondinho2'; rioGroup.add(bondinho2);
 rioGroup.userData.cableCurve=cableCurve; rioGroup.userData.bondinho1=bondinho1; rioGroup.userData.bondinho2=bondinho2;
 
-// Corcovado + Cristo Redentor
 const greenHillMat = new THREE.MeshStandardMaterial({color:'#1e5a3a', roughness:0.9});
 const corcovado = new THREE.Mesh(new THREE.ConeGeometry(8,10,8), greenHillMat); corcovado.position.set(-24,3.5,-72); corcovado.castShadow=true; rioGroup.add(corcovado);
 const cristoBase = new THREE.Mesh(new THREE.BoxGeometry(0.4,1.5,0.4), new THREE.MeshStandardMaterial({color:'#e8e0d0'})); cristoBase.position.set(-24,10.5,-72); rioGroup.add(cristoBase);
 const cristoBraco = new THREE.Mesh(new THREE.BoxGeometry(2.0,0.25,0.25), new THREE.MeshStandardMaterial({color:'#e8e0d0'})); cristoBraco.position.set(-24,11.2,-72); rioGroup.add(cristoBraco);
 
-// Praia + Areia + Mar da Baía de Guanabara
 const sandMat = new THREE.MeshStandardMaterial({color:'#e8d5a8', roughness:1});
 const sand = new THREE.Mesh(new THREE.PlaneGeometry(120,20), sandMat); sand.rotation.x=-Math.PI/2; sand.position.set(10,-0.4,-68); rioGroup.add(sand);
 const waterMat = new THREE.MeshStandardMaterial({color:'#1a6a8a', roughness:0.1, metalness:0.2, transparent:true, opacity:0.85});
 const water = new THREE.Mesh(new THREE.PlaneGeometry(300,120), waterMat); water.rotation.x=-Math.PI/2; water.position.set(20,-0.45,-85); rioGroup.add(water);
 
-// Sol 3D bem visível + brilho
 const sunMesh = new THREE.Mesh(new THREE.SphereGeometry(3.0,20,16), new THREE.MeshBasicMaterial({color:'#ffaa33'}));
 sunMesh.position.set(-28,28,-50); rioGroup.add(sunMesh);
 const sunGlow = new THREE.Mesh(new THREE.SphereGeometry(5.0,16,12), new THREE.MeshBasicMaterial({color:'#ffcc66', transparent:true, opacity:0.25}));
 sunGlow.position.copy(sunMesh.position); rioGroup.add(sunGlow);
 const sunLight = new THREE.PointLight('#ffb852', 2, 80); sunLight.position.copy(sunMesh.position); rioGroup.add(sunLight);
 
-// Casinhas coloridas de Santa Teresa ao redor (mais)
 const houseColors = ['#E2A83B','#D6488C','#1B4D6B','#B85A3C','#1E6B4F','#f4ede0','#ff7eb0'];
 for(let i=0;i<28;i++){
   const col = houseColors[Math.floor(Math.random()*houseColors.length)];
@@ -415,7 +400,6 @@ for(let i=0;i<28;i++){
   const roof=new THREE.Mesh(new THREE.ConeGeometry(w*0.7,0.6,4), new THREE.MeshStandardMaterial({color:'#8a4a3a'})); roof.position.set(x,h-0.05,z); roof.rotation.y=Math.PI/4; rioGroup.add(roof);
 }
 
-// Palmeiras tropicais
 function palm(x,z,s=1){
   const trunk=new THREE.Mesh(new THREE.CylinderGeometry(0.08*s,0.12*s,2.8*s,8), new THREE.MeshStandardMaterial({color:'#5a3a2a'}));
   trunk.position.set(x,1.4*s-0.3,z); trunk.castShadow=true; rioGroup.add(trunk);
@@ -429,7 +413,6 @@ for(let i=0;i<18;i++){
   palm(Math.cos(ang)*rad, Math.sin(ang)*rad-8, 0.9+Math.random()*0.6);
 }
 
-// Guarda-sóis coloridos na areia (estilo praia carioca)
 const umbrellaColors = ['#e63946','#f4a261','#2e7d4f','#1B4D6B','#ffcc00'];
 function beachUmbrella(x,z){
   const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.035,1.6,6), new THREE.MeshStandardMaterial({color:'#e8e0d0'}));
@@ -440,7 +423,6 @@ function beachUmbrella(x,z){
 }
 for(let i=0;i<9;i++) beachUmbrella(-20+i*7+(Math.random()-0.5)*2, -62+(Math.random()-0.5)*4);
 
-// Gaivotas simples sobrevoando o mar
 const seagulls = [];
 function seagull(x,y,z){
   const g=new THREE.Group();
@@ -456,50 +438,106 @@ seagull(0,14,-60); seagull(6,16,-66); seagull(-8,15,-56);
 rioGroup.userData.seagulls = seagulls;
 
 /* ============================================================
-   BONECO MINECRAFT - SKIN TROCÁVEL - VOCÊ FAZ A SKIN
+   BONECO MINECRAFT - CORRIGIDO - UV MAPPING REAL 64x64
    ============================================================ */
 
-// Cria textura de skin tipo Minecraft 64x64 - VOCÊ PODE TROCAR POR PNG DEPOIS
-// Layout simples: cabeça 8x8, torso 8x12, braços 4x12, pernas 4x12
+// --- FIX DO BUG DA SKIN ESTICADA ---
+// O problema era que BoxGeometry mapeia a textura inteira em cada face.
+// Agora a gente reescreve os UVs pra cada cubo pegar só o retângulo certo do atlas 64x64
+function applySkinUVs(geometry, frontU, frontV, w_px, h_px, d_px){
+  const uv = geometry.attributes.uv;
+  function rect(u,v,w,h){
+    const u0 = u/64;
+    const u1 = (u+w)/64;
+    const v0 = 1 - (v+h)/64; // Three.js UV é bottom->top, textura é top->bottom
+    const v1 = 1 - v/64;
+    return {u0,u1,v0,v1};
+  }
+  const front = rect(frontU, frontV, w_px, h_px);
+  const back = rect(frontU + w_px + d_px, frontV, w_px, h_px);
+  const right = rect(frontU - d_px, frontV, d_px, h_px);
+  const left = rect(frontU + w_px, frontV, d_px, h_px);
+  const top = rect(frontU, frontV - d_px, w_px, d_px);
+  const bottom = rect(frontU + w_px, frontV - d_px, w_px, d_px);
+  // Ordem do BoxGeometry: +x(right), -x(left), +y(top), -y(bottom), +z(front), -z(back)
+  const faces = [right, left, top, bottom, front, back];
+  for(let i=0;i<6;i++){
+    const r = faces[i];
+    const o = i*4;
+    uv.setXY(o, r.u0, r.v0);
+    uv.setXY(o+1, r.u1, r.v0);
+    uv.setXY(o+2, r.u1, r.v1);
+    uv.setXY(o+3, r.u0, r.v1);
+  }
+  uv.needsUpdate = true;
+}
+
+function createSkinnedBox(wW, hW, dW, wPx, hPx, dPx, frontU, frontV, material){
+  const geo = new THREE.BoxGeometry(wW, hW, dW);
+  applySkinUVs(geo, frontU, frontV, wPx, hPx, dPx);
+  const mesh = new THREE.Mesh(geo, material);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  return mesh;
+}
+
 function createMinecraftSkin(type){
-  const size=64;
-  const c=document.createElement('canvas'); c.width=size; c.height=size;
+  const S=64;
+  const c=document.createElement('canvas'); c.width=S; c.height=S;
   const ctx=c.getContext('2d');
-  ctx.clearRect(0,0,size,size);
-  
+  ctx.imageSmoothingEnabled=false;
+  ctx.clearRect(0,0,S,S);
+  const F=(u,v,w,h,col)=>{ctx.fillStyle=col; ctx.fillRect(u,v,w,h);};
+
   if(type==='sofia_tropical'){
-    // Face pele #f5c9a3
-    ctx.fillStyle='#f5c9a3'; ctx.fillRect(8,8,8,8);
-    // Cabelo castanho topo #8a4a2a + pontas loiras #e8c86a ombré
-    ctx.fillStyle='#8a4a2a'; ctx.fillRect(8,0,8,8); ctx.fillRect(0,0,8,8); ctx.fillRect(16,0,8,8);
-    ctx.fillStyle='#e8c86a'; ctx.fillRect(0,8,8,8); ctx.fillRect(16,8,8,8);
-    // Torso top rosa #ff7eb0
-    ctx.fillStyle='#ff7eb0'; ctx.fillRect(20,20,8,12);
-    // Shorts jeans #6fa8dc
-    ctx.fillStyle='#6fa8dc'; ctx.fillRect(20,32,8,4); ctx.fillRect(4,32,4,4); ctx.fillRect(12,32,4,4);
-    // Braços e pernas pele
-    ctx.fillStyle='#f5c9a3'; ctx.fillRect(44,20,4,12); ctx.fillRect(36,20,4,12); ctx.fillRect(4,20,4,12); ctx.fillRect(12,20,4,12);
+    const skin='#f5c9a3', hairD='#5a331f', hair='#8a4a2a', blonde='#e8c86a', coral='#ff7a6e', coralD='#e85d52', denim='#6b8dc6', palm='#2e7d4f';
+    // cabeça base
+    F(8,8,8,8,skin);
+    F(9,10,2,2,'#4a2a1a'); F(13,10,2,2,'#4a2a1a'); // olhos
+    F(10,11,1,1,'#fff'); F(14,11,1,1,'#fff');
+    F(9,13,1,1,'#ffb0a0'); F(14,13,1,1,'#ffb0a0');
+    F(8,0,8,8,hair); F(16,0,8,8,hair); F(0,8,8,8,hair); F(16,8,8,8,hair); F(24,8,8,8,hair);
+    F(0,14,8,2,blonde); F(16,14,8,2,blonde); F(24,14,8,2,blonde);
+    // overlay - coroa de flores
+    F(40,0,8,8,'rgba(0,0,0,0)'); // topo overlay transparente
+    F(32,8,8,8,hair); F(40,8,8,8,'rgba(0,0,0,0)'); F(48,8,8,8,hair); F(56,8,8,8,hair);
+    // flores na frente overlay
+    F(40,8,2,2,'#fff'); F(42,8,2,2,'#ffeb3b'); F(44,8,2,2,'#ff8ab3'); F(46,8,2,2,'#fff'); F(40,9,8,1,'#3a8a4a');
+    // corpo - top coqueiros
+    F(20,16,8,4,skin); F(28,16,8,4,skin);
+    F(16,20,4,12,skin); F(20,20,8,12,coral); F(28,20,4,12,skin); F(32,20,8,12,coral);
+    F(21,22,1,2,palm); F(25,22,1,2,palm); F(21,26,1,2,palm); F(25,26,1,2,palm);
+    F(23,30,2,2,coralD);
+    // overlay corpo
+    F(20,32,8,4,'rgba(0,0,0,0)'); F(28,32,8,4,'rgba(0,0,0,0)');
+    F(16,36,4,12,skin); F(20,36,8,12,coral); F(28,36,4,12,skin); F(32,36,8,12,coral);
+    // braços
+    F(44,16,4,4,skin); F(48,16,4,4,skin); F(40,20,4,12,skin); F(44,20,4,12,skin); F(48,20,4,12,skin); F(52,20,4,12,skin);
+    F(44,20,4,3,coral);
+    F(44,32,4,4,'rgba(0,0,0,0)'); F(48,32,4,4,'rgba(0,0,0,0)'); F(40,36,4,12,skin); F(44,36,4,12,skin); F(48,36,4,12,skin); F(52,36,4,12,skin); F(44,36,4,3,coral);
+    F(32,48,4,4,skin); F(36,48,4,4,skin); F(28,52,4,12,skin); F(32,52,4,12,skin); F(36,52,4,12,skin); F(40,52,4,12,skin); F(32,52,4,3,coral);
+    // pernas - jeans rasgado
+    F(4,16,4,4,skin); F(8,16,4,4,skin); F(0,20,4,12,denim); F(4,20,4,12,denim); F(8,20,4,12,denim); F(12,20,4,12,denim); F(5,25,2,2,'#d9c7a5');
+    F(4,32,4,4,'rgba(0,0,0,0)'); F(8,32,4,4,'rgba(0,0,0,0)'); F(0,36,4,12,denim); F(4,36,4,12,denim); F(8,36,4,12,denim); F(12,36,4,12,denim);
+    F(20,48,4,4,skin); F(24,48,4,4,skin); F(16,52,4,12,denim); F(20,52,4,12,denim); F(24,52,4,12,denim); F(28,52,4,12,denim); F(21,57,2,2,'#d9c7a5');
   } else if(type==='sofia_princess'){
-    ctx.fillStyle='#f5c9a3'; ctx.fillRect(8,8,8,8);
-    ctx.fillStyle='#8a4a2a'; ctx.fillRect(8,0,8,8); ctx.fillRect(0,0,8,8); ctx.fillRect(16,0,8,8);
-    ctx.fillStyle='#e8c86a'; ctx.fillRect(0,8,8,8); ctx.fillRect(16,8,8,8);
-    ctx.fillStyle='#ffd700'; ctx.fillRect(8,0,8,2); // tiara
-    // Vestido branco #fffaf0 + dourado #E8C468
-    ctx.fillStyle='#fffaf0'; ctx.fillRect(20,20,8,20);
-    ctx.fillStyle='#E8C468'; ctx.fillRect(20,36,8,2);
-    ctx.fillStyle='#f5c9a3'; ctx.fillRect(44,20,4,6); ctx.fillRect(36,20,4,6);
-  } else if(type==='lucas_formal'){
-    ctx.fillStyle='#c98a5e'; ctx.fillRect(8,8,8,8);
-    ctx.fillStyle='#3a2818'; ctx.fillRect(8,0,8,8);
-    ctx.fillStyle='#1B4D6B'; ctx.fillRect(20,20,8,12); // camisa azul
-    ctx.fillStyle='#2b3550'; ctx.fillRect(4,20,12,12);
-    ctx.fillStyle='#c98a5e'; ctx.fillRect(44,20,4,12); ctx.fillRect(36,20,4,12);
+    const skin='#f5c9a3', hair='#6b3a26', gold='#E8C468', white='#fffaf0';
+    F(8,8,8,8,skin); F(9,10,2,2,'#4a2a1a'); F(13,10,2,2,'#4a2a1a'); F(8,0,8,8,hair); F(16,0,8,8,hair); F(0,8,8,8,hair); F(16,8,8,8,hair); F(24,8,8,8,hair);
+    F(40,0,8,2,gold); F(40,8,8,2,gold); // tiara no overlay
+    F(20,16,8,4,skin); F(28,16,8,4,skin); F(16,20,4,12,skin); F(20,20,8,12,white); F(28,20,4,12,skin); F(32,20,8,12,white);
+    F(20,28,8,2,gold); F(20,32,8,2,gold);
+    F(44,16,4,4,skin); F(48,16,4,4,skin); F(40,20,4,12,skin); F(44,20,4,12,skin); F(48,20,4,12,skin); F(52,20,4,12,skin); F(40,22,4,1,gold);
+    F(32,48,4,4,skin); F(36,48,4,4,skin); F(28,52,4,12,skin); F(32,52,4,12,skin); F(36,52,4,12,skin); F(40,52,4,12,skin); F(28,54,4,1,gold);
+    F(4,16,4,4,white); F(8,16,4,4,white); F(0,20,4,12,white); F(4,20,4,12,white); F(8,20,4,12,white); F(12,20,4,12,white); F(0,28,16,2,gold);
+    F(20,48,4,4,white); F(24,48,4,4,white); F(16,52,4,12,white); F(20,52,4,12,white); F(24,52,4,12,white); F(28,52,4,12,white); F(16,60,16,2,gold);
   } else if(type==='lucas'){
-    ctx.fillStyle='#c98a5e'; ctx.fillRect(8,8,8,8);
-    ctx.fillStyle='#3a2818'; ctx.fillRect(8,0,8,8);
-    ctx.fillStyle='#f4f0e6'; ctx.fillRect(20,20,8,12);
-    ctx.fillStyle='#2b3550'; ctx.fillRect(4,20,12,12);
-    ctx.fillStyle='#c98a5e'; ctx.fillRect(44,20,4,12); ctx.fillRect(36,20,4,12);
+    const skin='#c98a5e', hair='#3a2818', shirt='#f4f0e6';
+    F(8,8,8,8,skin); F(8,0,8,8,hair); F(16,0,8,8,hair); F(0,8,8,8,hair); F(16,8,8,8,hair); F(24,8,8,8,hair);
+    F(20,20,8,12,shirt); F(4,20,4,12,shirt); F(44,20,4,12,skin); F(32,52,4,12,skin); F(4,20,4,12,shirt); F(20,48,4,12,'#2b3550');
+  } else if(type==='lucas_formal'){
+    const skin='#c98a5e', hair='#3a2818';
+    F(8,8,8,8,skin); F(8,0,8,8,hair);
+    F(20,20,8,12,'#1B4D6B'); F(4,20,4,12,'#1B4D6B'); F(44,20,4,12,skin); F(32,52,4,12,skin);
   }
   const tex=new THREE.CanvasTexture(c);
   tex.magFilter=THREE.NearestFilter; tex.minFilter=THREE.NearestFilter;
@@ -507,52 +545,46 @@ function createMinecraftSkin(type){
   return tex;
 }
 
-// Cria boneco estilo Minecraft com 6 cubos - SKIN TROCÁVEL
 function createMinecraftCharacter(skinTex){
   const group=new THREE.Group();
-  const mat=new THREE.MeshStandardMaterial({map:skinTex});
-  mat.map.magFilter=THREE.NearestFilter;
-  group.userData.material = mat; // guardado pra permitir trocar a skin depois (ver loadSkin/assets/sprites)
-  
-  const headGeo=new THREE.BoxGeometry(0.4,0.4,0.4);
-  const head=new THREE.Mesh(headGeo, mat); head.position.y=1.5; head.castShadow=true; group.add(head); group.userData.head=head;
-  
-  const bodyGeo=new THREE.BoxGeometry(0.4,0.6,0.2);
-  const body=new THREE.Mesh(bodyGeo, mat); body.position.y=1.0; body.castShadow=true; group.add(body); group.userData.body=body;
-  
-  const armGeo=new THREE.BoxGeometry(0.13,0.6,0.13);
-  const leftArm=new THREE.Mesh(armGeo, mat); leftArm.position.set(-0.27,1.0,0); leftArm.castShadow=true; group.add(leftArm);
-  const rightArm=new THREE.Mesh(armGeo, mat); rightArm.position.set(0.27,1.0,0); rightArm.castShadow=true; group.add(rightArm);
+  const mat=new THREE.MeshStandardMaterial({map:skinTex, transparent:true, alphaTest:0.2});
+  mat.map.magFilter=THREE.NearestFilter; mat.map.minFilter=THREE.NearestFilter;
+  group.userData.material = mat;
+
+  // cabeça 8x8x8 - frente 8,8
+  const head = createSkinnedBox(0.4,0.4,0.4, 8,8,8, 8,8, mat);
+  head.position.y=1.5; group.add(head); group.userData.head=head;
+  // chapéu / segunda camada 40,8 um pouco maior
+  const hat = createSkinnedBox(0.46,0.46,0.46, 8,8,8, 40,8, mat);
+  hat.position.y=1.5; group.add(hat); group.userData.hat=hat;
+
+  // tronco 8x12x4 - frente 20,20
+  const body = createSkinnedBox(0.4,0.6,0.2, 8,12,4, 20,20, mat);
+  body.position.y=1.0; group.add(body); group.userData.body=body;
+
+  // braço direito - frente 44,20
+  const rightArm = createSkinnedBox(0.2,0.6,0.2, 4,12,4, 44,20, mat);
+  rightArm.position.set(0.3,1.0,0); group.add(rightArm);
+
+  // braço esquerdo - novo layout 64x64 frente 32,48
+  const leftArm = createSkinnedBox(0.2,0.6,0.2, 4,12,4, 32,48, mat);
+  leftArm.position.set(-0.3,1.0,0); group.add(leftArm);
+
   group.userData.leftArm=leftArm; group.userData.rightArm=rightArm;
-  
-  const legGeo=new THREE.BoxGeometry(0.15,0.6,0.15);
-  const leftLeg=new THREE.Mesh(legGeo, mat); leftLeg.position.set(-0.1,0.4,0); leftLeg.castShadow=true; group.add(leftLeg);
-  const rightLeg=new THREE.Mesh(legGeo, mat); rightLeg.position.set(0.1,0.4,0); rightLeg.castShadow=true; group.add(rightLeg);
+
+  // perna direita - frente 4,20
+  const rightLeg = createSkinnedBox(0.2,0.6,0.2, 4,12,4, 4,20, mat);
+  rightLeg.position.set(0.1,0.4,0); group.add(rightLeg);
+  // perna esquerda - frente 20,48
+  const leftLeg = createSkinnedBox(0.2,0.6,0.2, 4,12,4, 20,48, mat);
+  leftLeg.position.set(-0.1,0.4,0); group.add(leftLeg);
+
   group.userData.leftLeg=leftLeg; group.userData.rightLeg=rightLeg;
-  
   return group;
 }
 
-/* ============================================================
-   SPRITES OPCIONAIS - assets/sprites/skins/
-   ------------------------------------------------------------
-   Se você quiser usar skins reais (imagem) em vez das geradas por
-   código, só colocar os arquivos PNG 64x64 no formato Minecraft
-   (layout clássico) com ESSES nomes exatos dentro da pasta:
-
-     assets/sprites/skins/sofia_tropical.png
-     assets/sprites/skins/sofia_princess.png
-     assets/sprites/skins/lucas.png
-     assets/sprites/skins/lucas_formal.png
-
-   Se o arquivo existir, ele é usado automaticamente. Se não existir
-   (ou der erro 404), o jogo cai pra skin gerada por código sem
-   quebrar nada — não precisa mexer em mais nada no script.
-   ============================================================ */
 const SPRITE_BASE = 'assets/sprites/skins/';
 const textureLoader = new THREE.TextureLoader();
-// Tenta trocar a skin procedural de um personagem pelo PNG real, se o arquivo existir.
-// Não faz nada (e não quebra nada) se o arquivo não for encontrado.
 function applyRealSkinIfAvailable(characterGroup, fileName) {
   textureLoader.load(
     SPRITE_BASE + fileName,
@@ -562,15 +594,14 @@ function applyRealSkinIfAvailable(characterGroup, fileName) {
       if (mat) { mat.map = tex; mat.needsUpdate = true; }
     },
     undefined,
-    () => { /* PNG não encontrado: mantém a skin gerada por código, sem erro visível */ }
+    () => {}
   );
 }
 
-// SKINS - TROCA AQUI - igual Minecraft, só mudar PNG depois (veja o bloco de comentário acima)
 const skinSofiaTropical = createMinecraftSkin('sofia_tropical');
 const skinSofiaPrincess = createMinecraftSkin('sofia_princess');
 const skinLucas = createMinecraftSkin('lucas');
-const skinLucas2 = createMinecraftSkin('lucas_formal'); // segunda skin do Lucas
+const skinLucas2 = createMinecraftSkin('lucas_formal');
 
 const sofiaTropical = createMinecraftCharacter(skinSofiaTropical);
 const sofiaPrincess = createMinecraftCharacter(skinSofiaPrincess);
@@ -596,9 +627,8 @@ const flowerPowerGroup = new THREE.Group();
 world.add(flowerPowerGroup);
 
 function spawnFlowerPower(origin, direction){
-  // Cria 25 pétalas voando
   for(let i=0;i<25;i++){
-    const petalMat = new THREE.MeshStandardMaterial({color: i%3===0 ? '#ff7eb0' : (i%3===1 ? '#E8C468' : '#2e7d4f'), side:THREE.DoubleSide});
+    const petalMat = new THREE.MeshStandardMaterial({color: i%3===0? '#ff7eb0' : (i%3===1? '#E8C468' : '#2e7d4f'), side:THREE.DoubleSide});
     const petal = new THREE.Mesh(new THREE.PlaneGeometry(0.12,0.08), petalMat);
     petal.position.copy(origin).add(new THREE.Vector3((Math.random()-0.5)*0.5, Math.random()*0.5, (Math.random()-0.5)*0.5));
     petal.lookAt(origin.clone().add(direction));
@@ -607,7 +637,6 @@ function spawnFlowerPower(origin, direction){
     petal.userData.spin = (Math.random()-0.5)*10;
     flowerPowerGroup.add(petal);
   }
-  // Luz rápida
   const flash = new THREE.PointLight('#ff7eb0', 8, 6);
   flash.position.copy(origin);
   world.add(flash);
@@ -618,7 +647,7 @@ function updateFlowerPower(dt){
   for(let i=flowerPowerGroup.children.length-1;i>=0;i--){
     const p=flowerPowerGroup.children[i];
     p.position.add(p.userData.vel.clone().multiplyScalar(dt));
-    p.userData.vel.y -= 1.5*dt; // gravidade
+    p.userData.vel.y -= 1.5*dt;
     p.rotation.z += p.userData.spin*dt;
     p.userData.life -= dt*0.9;
     p.material.opacity = p.userData.life;
@@ -627,9 +656,6 @@ function updateFlowerPower(dt){
   }
 }
 
-
-
-// Campo de estrelas usado na transição pro entardecer (tweenSky) - some de dia, aparece ao anoitecer
 const starGeo = new THREE.BufferGeometry();
 const starCount = 260;
 const starPositions = new Float32Array(starCount * 3);
@@ -657,8 +683,6 @@ const player = {
   moveDir: new THREE.Vector3()
 };
 
-// Poder de flores: usável a qualquer momento pelo botão dedicado (mobile) ou tecla F (PC).
-// Se o jogador estiver perto da vinha ainda não limpa, também libera a passagem.
 let flowerPowerCooldown = 0;
 function triggerFlowerBurst() {
   if (player.locked || dialogueActive || flowerPowerCooldown > 0) return;
@@ -679,16 +703,13 @@ function triggerFlowerBurst() {
 function setPlayerAction(kind, duration){
   const mesh=player.currentMesh; if(!mesh) return;
   player.locked=true;
-  if(kind==='attack'){ if(mesh.userData.leftArm) mesh.userData.leftArm.rotation.x=-1.2; if(mesh.userData.rightArm) mesh.userData.rightArm.rotation.x=-1.2; const origin = playerMesh.position.clone().add(new THREE.Vector3(0,1.2,0)); const dir = player.moveDir.length()>0.1 ? player.moveDir.clone() : new THREE.Vector3(0,0,-1); spawnFlowerPower(origin, dir); }
+  if(kind==='attack'){ if(mesh.userData.leftArm) mesh.userData.leftArm.rotation.x=-1.2; if(mesh.userData.rightArm) mesh.userData.rightArm.rotation.x=-1.2; const origin = playerMesh.position.clone().add(new THREE.Vector3(0,1.2,0)); const dir = player.moveDir.length()>0.1? player.moveDir.clone() : new THREE.Vector3(0,0,-1); spawnFlowerPower(origin, dir); }
   else if(kind==='shock'){ playerMesh.scale.y=0.7; playerMesh.position.y=-0.15; }
   else if(kind==='celebrate'){ playerMesh.position.y=0.4; if(mesh.userData.leftArm) mesh.userData.leftArm.rotation.z=-2.0; if(mesh.userData.rightArm) mesh.userData.rightArm.rotation.z=2.0; }
   clearTimeout(setPlayerAction._t);
   setPlayerAction._t=setTimeout(()=>{ player.locked=false; playerMesh.position.y=0; playerMesh.scale.y=1; if(mesh.userData.leftArm){mesh.userData.leftArm.rotation.x=0; mesh.userData.leftArm.rotation.z=0;} if(mesh.userData.rightArm){mesh.userData.rightArm.rotation.x=0; mesh.userData.rightArm.rotation.z=0;} },duration);
 }
 
-/* ============================================================
-   NPC "ELE" - SEU BONECO 3D MINECRAFT TAMBÉM COM SKIN
-   ============================================================ */
 /* ============================================================
    NPC "ELE" - SEU BONECO 3D (MANTIDO E MELHORADO)
    ============================================================ */
@@ -742,7 +763,7 @@ box(1.0, 0.5, 0.65, MAT.wood, 5.3, 0.25, 3.4);
 interactables.push({
   pos: new THREE.Vector3(5.3, 0, 3.4), radius: 1.6, id: 'vitrola',
   label: 'Tocar a vitrola', repeatable: true,
-  onInteract: () => { toggleAmbientMusic(); toast(audioState.playing ? '🎵 Uma melodia familiar enche a sala de calor...' : 'A música parou.'); },
+  onInteract: () => { toggleAmbientMusic(); toast(audioState.playing? '🎵 Uma melodia familiar enche a sala de calor...' : 'A música parou.'); },
 });
 interactables.push({
   pos: new THREE.Vector3(0, 0, 0), radius: 1.6, id: 'quadro',
@@ -771,7 +792,7 @@ interactables.push({
 
 const vineGroup = new THREE.Group();
 for (let i = 0; i < 26; i++) {
-  const seg = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 1.4, 6), i % 2 ? MAT.leaf : MAT.leafDark);
+  const seg = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 1.4, 6), i % 2? MAT.leaf : MAT.leafDark);
   seg.position.set((Math.random() - 0.5) * 12.4, 0.7 + Math.random() * 1.6, -5.5 + (Math.random() - 0.5) * 0.4);
   seg.rotation.z = (Math.random() - 0.5) * 1.4;
   seg.rotation.y = Math.random() * Math.PI;
@@ -809,7 +830,7 @@ const hallLeftWall = ZONE.sala.x0 + 0.17, hallRightWall = ZONE.sala.x1 - 0.17;
   g.position.set(x, 1.55, z);
   g.rotation.y = ry;
   world.add(g);
-  memoryTriggers.push({ pos: new THREE.Vector3(x > 0 ? x - 2 : x + 2, 0, z), radius: 2.4, seen: false, art, text: CFG.memorias[i] });
+  memoryTriggers.push({ pos: new THREE.Vector3(x > 0? x - 2 : x + 2, 0, z), radius: 2.4, seen: false, art, text: CFG.memorias[i] });
 });
 
 const key2Mesh = new THREE.Group();
@@ -923,9 +944,9 @@ function nextLine(onDone) {
     return;
   }
   const line = dialogueQueue.shift();
-  const speakerLabel = line.falante === 'ele' ? CFG.nomeEle : (line.falante === 'ela' ? CFG.nomeEla : '');
+  const speakerLabel = line.falante === 'ele'? CFG.nomeEle : (line.falante === 'ela'? CFG.nomeEla : '');
   $('speakerName').textContent = speakerLabel;
-  $('speakerName').style.opacity = speakerLabel ? 1 : 0;
+  $('speakerName').style.opacity = speakerLabel? 1 : 0;
   const textEl = $('dialogueText');
   textEl.textContent = '';
   clearInterval(typeInterval);
@@ -1095,7 +1116,7 @@ $('actionBtn').addEventListener('click', () => tryInteract());
 let nearestInteractable = null;
 function tryInteract() {
   if (dialogueActive) { advanceDialogue(); return; }
-  if (nearestInteractable && !player.locked) nearestInteractable.onInteract();
+  if (nearestInteractable &&!player.locked) nearestInteractable.onInteract();
 }
 
 /* ============================================================
@@ -1125,8 +1146,7 @@ function collidesAt(x, z) {
 function updatePlayer(dt) {
   const { ix, iy } = computeInput();
   player.moving = false;
-  if (!player.locked && (ix !== 0 || iy !== 0)) {
-    // Direção real da câmera (pra frente = pra "dentro da tela"), não o offset câmera->alvo (que apontava ao contrário e fazia andar pra trás)
+  if (!player.locked && (ix!== 0 || iy!== 0)) {
     camera.getWorldDirection(camForward);
     camForward.y = 0;
     if (camForward.lengthSq() < 1e-6) camForward.set(0, 0, -1); else camForward.normalize();
@@ -1139,7 +1159,6 @@ function updatePlayer(dt) {
     if (!collidesAt(player.pos.x, nz)) player.pos.z = nz;
     player.moving = true;
   }
-  // 3D REAL - vira o corpo pra direção que anda
   playerMesh.position.set(player.pos.x, 0, player.pos.z);
   if (player.moving && player.moveDir.length() > 0.1) {
     const desiredY = Math.atan2(player.moveDir.x, player.moveDir.z);
@@ -1150,8 +1169,7 @@ function updatePlayer(dt) {
   }
   blobShadow.position.set(player.pos.x, 0.02, player.pos.z);
 
-  // Animação 3D - balanço de pernas/braços
-  if (player.moving && !player.locked) {
+  if (player.moving &&!player.locked) {
     player.animTimer += dt * 8;
     const swing = Math.sin(player.animTimer) * 0.6;
     const mesh = player.currentMesh;
@@ -1175,7 +1193,7 @@ function updatePlayer(dt) {
   });
   nearestInteractable = best;
   const promptEl = $('interactPrompt');
-  if (best && !player.locked) {
+  if (best &&!player.locked) {
     $('interactLabel').textContent = best.label;
     promptEl.classList.add('show');
   } else {
@@ -1199,7 +1217,7 @@ function ensureAudio() {
   const Ctx = window.AudioContext || window.webkitAudioContext;
   audioState.ctx = new Ctx();
   audioState.master = audioState.ctx.createGain();
-  audioState.master.gain.value = audioState.muted ? 0 : 0.5;
+  audioState.master.gain.value = audioState.muted? 0 : 0.5;
   audioState.master.connect(audioState.ctx.destination);
 }
 function chime() {
@@ -1246,34 +1264,33 @@ function toggleAmbientMusic() {
 }
 $('soundToggle').addEventListener('click', () => {
   ensureAudio();
-  audioState.muted = !audioState.muted;
-  audioState.master.gain.value = audioState.muted ? 0 : 0.5;
-  $('soundToggle').textContent = audioState.muted ? '🔇' : '🔈';
+  audioState.muted =!audioState.muted;
+  audioState.master.gain.value = audioState.muted? 0 : 0.5;
+  $('soundToggle').textContent = audioState.muted? '🔇' : '🔈';
 });
 
 /* ============================================================
-   CONTROLES ADAPTATIVOS - PC x CELULAR (Minecraft-style no touch)
+   CONTROLES ADAPTATIVOS - PC x CELULAR
    ============================================================ */
 (function setupAdaptiveControls() {
   const style = document.createElement('style');
   style.textContent = `
     #mcActionButtons { position: fixed; right: 18px; bottom: 22px; display: flex; flex-direction: column; gap: 14px; z-index: 40; }
-    .mc-btn { width: 62px; height: 62px; border-radius: 14px; border: 3px solid rgba(255,255,255,0.55);
+   .mc-btn { width: 62px; height: 62px; border-radius: 14px; border: 3px solid rgba(255,255,255,0.55);
       background: linear-gradient(180deg, rgba(60,50,45,0.55), rgba(20,16,14,0.65)); backdrop-filter: blur(2px);
       display: flex; align-items: center; justify-content: center; font-size: 26px; color: #fff;
       -webkit-tap-highlight-color: transparent; user-select: none; touch-action: manipulation;
       box-shadow: 0 3px 0 rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.25); }
-    .mc-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,0.35); background: rgba(0,0,0,0.55); }
-    .mc-btn--flower { border-color: #ff9ec7; }
+   .mc-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,0.35); background: rgba(0,0,0,0.55); }
+   .mc-btn--flower { border-color: #ff9ec7; }
     #pcHint { position: fixed; left: 18px; bottom: 18px; z-index: 40; font: 12px/1.4 system-ui, sans-serif;
       color: #fff; background: rgba(0,0,0,0.35); padding: 6px 10px; border-radius: 8px; letter-spacing: 0.2px; }
-    body:not(.is-touch) #mcActionButtons { display: none !important; }
-    body.is-touch #pcHint { display: none !important; }
+    body:not(.is-touch) #mcActionButtons { display: none!important; }
+    body.is-touch #pcHint { display: none!important; }
   `;
   document.head.appendChild(style);
 
   if (isTouch) {
-    // Some com qualquer texto/lembrete de tecla de PC que já exista na tela
     const legacyPrompt = $('interactPrompt');
     if (legacyPrompt) legacyPrompt.classList.add('mobile-mode');
 
@@ -1288,9 +1305,8 @@ $('soundToggle').addEventListener('click', () => {
     $('flowerBtn').addEventListener('click', () => triggerFlowerBurst());
     $('mcInteractBtn').addEventListener('touchstart', (e) => { e.preventDefault(); tryInteract(); }, { passive: false });
     $('mcInteractBtn').addEventListener('click', () => tryInteract());
-    // Se existir o botão antigo de interação, deixa ele visível também (compatibilidade), sem duplicar textos de tecla
     const oldActionBtn = $('actionBtn');
-    if (oldActionBtn) oldActionBtn.style.display = 'none'; // substituído pelo mcInteractBtn
+    if (oldActionBtn) oldActionBtn.style.display = 'none';
   } else {
     const hint = document.createElement('div');
     hint.id = 'pcHint';
@@ -1300,7 +1316,7 @@ $('soundToggle').addEventListener('click', () => {
 })();
 
 /* ============================================================
-   TITLE / LOADING FLOW - CORRIGIDO PRA NÃO FICAR CARREGANDO
+   TITLE / LOADING FLOW
    ============================================================ */
 const loadingManager = new THREE.LoadingManager();
 loadingManager.onProgress = (u, loaded, total) => { const el=$('loadbarFill'); if(el) el.style.width = (loaded / total * 100) + '%'; };
@@ -1308,10 +1324,9 @@ loadingManager.onLoad = () => {
   $('loading').classList.add('hidden');
   $('titleScreen').classList.remove('hidden');
 };
-// Fallback GARANTIDO - mesmo sem sprites carrega
 setTimeout(() => {
   const loadEl=$('loading'); const titleEl=$('titleScreen');
-  if (loadEl && !loadEl.classList.contains('hidden')) {
+  if (loadEl &&!loadEl.classList.contains('hidden')) {
     loadEl.classList.add('hidden');
     if(titleEl) titleEl.classList.remove('hidden');
   }
@@ -1326,13 +1341,13 @@ const howToBtnEl = $('howToBtn');
 if (howToBtnEl) {
   howToBtnEl.addEventListener('click', () => {
     toast(isTouch
-      ? '👆 Use o manete pra andar. Toque em ✋ para interagir e em 🌸 para a rajada de flores.'
-      : '⌨️ Use WASD ou as setas pra andar. Pressione E (ou espaço) para interagir e F para a rajada de flores.');
+     ? '👆 Use o manete pra andar. Toque em ✋ para interagir e em 🌸 para a rajada de flores.'
+      : '⌨ Use WASD ou as setas pra andar. Pressione E (ou espaço) para interagir e F para a rajada de flores.');
   });
 }
 
 /* ============================================================
-   MAIN LOOP - COM BONDINHO ANIMADO
+   MAIN LOOP
    ============================================================ */
 const clock = new THREE.Clock();
 function animate() {
@@ -1345,7 +1360,6 @@ function animate() {
   updateFlowerPower(dt);
   const eleBob = Math.sin(t * 1.3) * 0.02;
   eleGroup.position.y = eleBob;
-  // Anima bondinho Pão de Açúcar
   if(rioGroup && rioGroup.userData.cableCurve){
     const c=rioGroup.userData.cableCurve;
     const p1=c.getPoint((t*0.04)%1);
@@ -1353,7 +1367,6 @@ function animate() {
     if(rioGroup.userData.bondinho1) rioGroup.userData.bondinho1.position.copy(p1);
     if(rioGroup.userData.bondinho2) rioGroup.userData.bondinho2.position.copy(p2);
   }
-  // Anima as gaivotas sobrevoando o mar em círculos suaves
   if (rioGroup && rioGroup.userData.seagulls) {
     rioGroup.userData.seagulls.forEach((s) => {
       const ang = t * s.speed + s.phase;
@@ -1361,7 +1374,6 @@ function animate() {
       s.mesh.rotation.y = -ang - Math.PI / 2;
     });
   }
-  // Anima bondinho de Santa Teresa na rua (fica sempre além da varanda, nunca cruza a casa)
   if(rioGroup && rioGroup.userData.tramGroup){
     const tram=rioGroup.userData.tramGroup;
     tram.position.z = rioGroup.userData.tramZCentro - Math.sin(t*0.3) * rioGroup.userData.tramAmplitude;
