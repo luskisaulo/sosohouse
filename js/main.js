@@ -328,7 +328,7 @@ cyl(0.05, 0.05, 0.75, MAT.ferro, 0, 0.4, -19);
 box(ZONE.sala.x1 - ZONE.sala.x0 - 3, 0.06, 0.5, MAT.dourado, 0, 0.02, ZONE.sala.z0 + 0.1);
 
 /* ============================================================
-   CENÁRIO CARIOCA - INTACTO
+   CENÁRIO CARIOCA ULTRA COMPLETO
    ============================================================ */
 const rioGroup = new THREE.Group();
 world.add(rioGroup);
@@ -358,7 +358,6 @@ rioGroup.add(tramGroup);
 rioGroup.userData.tramGroup=tramGroup;
 rioGroup.userData.tramZCentro = RUA_Z_CENTRO;
 rioGroup.userData.tramAmplitude = RUA_Z_METADE - 5;
-
 const paoMat = new THREE.MeshStandardMaterial({color:'#4a5a6a', roughness:0.8});
 const paoBase = new THREE.Mesh(new THREE.CylinderGeometry(3.2,4.8,5,14), paoMat); paoBase.position.set(22,2.2,-58); paoBase.castShadow=true; rioGroup.add(paoBase);
 const paoTop = new THREE.Mesh(new THREE.SphereGeometry(3.4,20,16,0,Math.PI*2,0,Math.PI*0.6), paoMat); paoTop.position.set(22,6,-58); paoTop.scale.set(1,1.4,1); paoTop.castShadow=true; rioGroup.add(paoTop);
@@ -371,23 +370,19 @@ const bondinhoGeo = new THREE.BoxGeometry(0.8,0.6,1.0);
 const bondinho1 = new THREE.Mesh(bondinhoGeo, new THREE.MeshStandardMaterial({color:'#ffcc00'})); bondinho1.name='bondinho1'; rioGroup.add(bondinho1);
 const bondinho2 = new THREE.Mesh(bondinhoGeo, new THREE.MeshStandardMaterial({color:'#e63946'})); bondinho2.name='bondinho2'; rioGroup.add(bondinho2);
 rioGroup.userData.cableCurve=cableCurve; rioGroup.userData.bondinho1=bondinho1; rioGroup.userData.bondinho2=bondinho2;
-
 const greenHillMat = new THREE.MeshStandardMaterial({color:'#1e5a3a', roughness:0.9});
 const corcovado = new THREE.Mesh(new THREE.ConeGeometry(8,10,8), greenHillMat); corcovado.position.set(-24,3.5,-72); corcovado.castShadow=true; rioGroup.add(corcovado);
 const cristoBase = new THREE.Mesh(new THREE.BoxGeometry(0.4,1.5,0.4), new THREE.MeshStandardMaterial({color:'#e8e0d0'})); cristoBase.position.set(-24,10.5,-72); rioGroup.add(cristoBase);
 const cristoBraco = new THREE.Mesh(new THREE.BoxGeometry(2.0,0.25,0.25), new THREE.MeshStandardMaterial({color:'#e8e0d0'})); cristoBraco.position.set(-24,11.2,-72); rioGroup.add(cristoBraco);
-
 const sandMat = new THREE.MeshStandardMaterial({color:'#e8d5a8', roughness:1});
 const sand = new THREE.Mesh(new THREE.PlaneGeometry(120,20), sandMat); sand.rotation.x=-Math.PI/2; sand.position.set(10,-0.4,-68); rioGroup.add(sand);
 const waterMat = new THREE.MeshStandardMaterial({color:'#1a6a8a', roughness:0.1, metalness:0.2, transparent:true, opacity:0.85});
 const water = new THREE.Mesh(new THREE.PlaneGeometry(300,120), waterMat); water.rotation.x=-Math.PI/2; water.position.set(20,-0.45,-85); rioGroup.add(water);
-
 const sunMesh = new THREE.Mesh(new THREE.SphereGeometry(3.0,20,16), new THREE.MeshBasicMaterial({color:'#ffaa33'}));
 sunMesh.position.set(-28,28,-50); rioGroup.add(sunMesh);
 const sunGlow = new THREE.Mesh(new THREE.SphereGeometry(5.0,16,12), new THREE.MeshBasicMaterial({color:'#ffcc66', transparent:true, opacity:0.25}));
 sunGlow.position.copy(sunMesh.position); rioGroup.add(sunGlow);
 const sunLight = new THREE.PointLight('#ffb852', 2, 80); sunLight.position.copy(sunMesh.position); rioGroup.add(sunLight);
-
 const houseColors = ['#E2A83B','#D6488C','#1B4D6B','#B85A3C','#1E6B4F','#f4ede0','#ff7eb0'];
 for(let i=0;i<28;i++){
   const col = houseColors[Math.floor(Math.random()*houseColors.length)];
@@ -399,7 +394,6 @@ for(let i=0;i<28;i++){
   const house=new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mat); house.position.set(x,h/2-0.3,z); house.castShadow=true; rioGroup.add(house);
   const roof=new THREE.Mesh(new THREE.ConeGeometry(w*0.7,0.6,4), new THREE.MeshStandardMaterial({color:'#8a4a3a'})); roof.position.set(x,h-0.05,z); roof.rotation.y=Math.PI/4; rioGroup.add(roof);
 }
-
 function palm(x,z,s=1){
   const trunk=new THREE.Mesh(new THREE.CylinderGeometry(0.08*s,0.12*s,2.8*s,8), new THREE.MeshStandardMaterial({color:'#5a3a2a'}));
   trunk.position.set(x,1.4*s-0.3,z); trunk.castShadow=true; rioGroup.add(trunk);
@@ -412,7 +406,6 @@ for(let i=0;i<18;i++){
   const ang=Math.random()*Math.PI*2, rad=12+Math.random()*28;
   palm(Math.cos(ang)*rad, Math.sin(ang)*rad-8, 0.9+Math.random()*0.6);
 }
-
 const umbrellaColors = ['#e63946','#f4a261','#2e7d4f','#1B4D6B','#ffcc00'];
 function beachUmbrella(x,z){
   const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.035,1.6,6), new THREE.MeshStandardMaterial({color:'#e8e0d0'}));
@@ -422,7 +415,6 @@ function beachUmbrella(x,z){
   canopy.position.set(x,1.25,z); canopy.castShadow=true; rioGroup.add(canopy);
 }
 for(let i=0;i<9;i++) beachUmbrella(-20+i*7+(Math.random()-0.5)*2, -62+(Math.random()-0.5)*4);
-
 const seagulls = [];
 function seagull(x,y,z){
   const g=new THREE.Group();
@@ -438,29 +430,29 @@ seagull(0,14,-60); seagull(6,16,-66); seagull(-8,15,-56);
 rioGroup.userData.seagulls = seagulls;
 
 /* ============================================================
-   BONECO MINECRAFT - CORRIGIDO - UV MAPPING REAL 64x64
+   BONECO MINECRAFT - SKIN TROCÁVEL - CORRIGIDO UV MAPPING
    ============================================================ */
 
-// --- FIX DO BUG DA SKIN ESTICADA ---
-// O problema era que BoxGeometry mapeia a textura inteira em cada face.
-// Agora a gente reescreve os UVs pra cada cubo pegar só o retângulo certo do atlas 64x64
-function applySkinUVs(geometry, frontU, frontV, w_px, h_px, d_px){
+// FIX PRINCIPAL: Minecraft skin 64x64 tem layout específico. Cada cubo tem 6 faces com coordenadas diferentes.
+// Antes você mapeava a textura inteira em cada lado -> ficava cagado.
+// Agora aplicamos UV correto: frente (u,v,w,h) / costas (u+w+d) / direita (u-d) / esquerda (u+w) / cima (u,v-d) / baixo (u+w,v-d)
+
+function applyBoxUVs(geometry, frontU, frontV, w, h, d){
   const uv = geometry.attributes.uv;
-  function rect(u,v,w,h){
-    const u0 = u/64;
-    const u1 = (u+w)/64;
-    const v0 = 1 - (v+h)/64; // Three.js UV é bottom->top, textura é top->bottom
+  function rect(u,v,rw,rh){
+    const u0 = u/64, u1 = (u+rw)/64;
+    const v0 = 1 - (v+rh)/64;
     const v1 = 1 - v/64;
     return {u0,u1,v0,v1};
   }
-  const front = rect(frontU, frontV, w_px, h_px);
-  const back = rect(frontU + w_px + d_px, frontV, w_px, h_px);
-  const right = rect(frontU - d_px, frontV, d_px, h_px);
-  const left = rect(frontU + w_px, frontV, d_px, h_px);
-  const top = rect(frontU, frontV - d_px, w_px, d_px);
-  const bottom = rect(frontU + w_px, frontV - d_px, w_px, d_px);
-  // Ordem do BoxGeometry: +x(right), -x(left), +y(top), -y(bottom), +z(front), -z(back)
-  const faces = [right, left, top, bottom, front, back];
+  const front = rect(frontU, frontV, w, h);
+  const back = rect(frontU + w + d, frontV, w, h);
+  const right = rect(frontU - d, frontV, d, h);
+  const left = rect(frontU + w, frontV, d, h);
+  const top = rect(frontU, frontV - d, w, d);
+  const bottom= rect(frontU + w, frontV - d, w, d);
+  // Three BoxGeometry order: +X (left), -X (right), +Y (top), -Y (bottom), +Z (front), -Z (back)
+  const faces = [left, right, top, bottom, front, back];
   for(let i=0;i<6;i++){
     const r = faces[i];
     const o = i*4;
@@ -472,72 +464,70 @@ function applySkinUVs(geometry, frontU, frontV, w_px, h_px, d_px){
   uv.needsUpdate = true;
 }
 
-function createSkinnedBox(wW, hW, dW, wPx, hPx, dPx, frontU, frontV, material){
-  const geo = new THREE.BoxGeometry(wW, hW, dW);
-  applySkinUVs(geo, frontU, frontV, wPx, hPx, dPx);
-  const mesh = new THREE.Mesh(geo, material);
-  mesh.castShadow = true;
-  mesh.receiveShadow = true;
-  return mesh;
+function createSkinnedBox(wW,hW,dW, wPx,hPx,dPx, frontU, frontV, material){
+  const geo = new THREE.BoxGeometry(wW,hW,dW);
+  applyBoxUVs(geo, frontU, frontV, wPx, hPx, dPx);
+  const m = new THREE.Mesh(geo, material);
+  m.castShadow = true; m.receiveShadow = true;
+  return m;
 }
 
 function createMinecraftSkin(type){
-  const S=64;
-  const c=document.createElement('canvas'); c.width=S; c.height=S;
+  const c=document.createElement('canvas'); c.width=64; c.height=64;
   const ctx=c.getContext('2d');
   ctx.imageSmoothingEnabled=false;
-  ctx.clearRect(0,0,S,S);
-  const F=(u,v,w,h,col)=>{ctx.fillStyle=col; ctx.fillRect(u,v,w,h);};
+  ctx.clearRect(0,0,64,64);
+  const fill=(u,v,w,h,col)=>{ctx.fillStyle=col; ctx.fillRect(u,v,w,h);};
 
   if(type==='sofia_tropical'){
-    const skin='#f5c9a3', hairD='#5a331f', hair='#8a4a2a', blonde='#e8c86a', coral='#ff7a6e', coralD='#e85d52', denim='#6b8dc6', palm='#2e7d4f';
-    // cabeça base
-    F(8,8,8,8,skin);
-    F(9,10,2,2,'#4a2a1a'); F(13,10,2,2,'#4a2a1a'); // olhos
-    F(10,11,1,1,'#fff'); F(14,11,1,1,'#fff');
-    F(9,13,1,1,'#ffb0a0'); F(14,13,1,1,'#ffb0a0');
-    F(8,0,8,8,hair); F(16,0,8,8,hair); F(0,8,8,8,hair); F(16,8,8,8,hair); F(24,8,8,8,hair);
-    F(0,14,8,2,blonde); F(16,14,8,2,blonde); F(24,14,8,2,blonde);
-    // overlay - coroa de flores
-    F(40,0,8,8,'rgba(0,0,0,0)'); // topo overlay transparente
-    F(32,8,8,8,hair); F(40,8,8,8,'rgba(0,0,0,0)'); F(48,8,8,8,hair); F(56,8,8,8,hair);
-    // flores na frente overlay
-    F(40,8,2,2,'#fff'); F(42,8,2,2,'#ffeb3b'); F(44,8,2,2,'#ff8ab3'); F(46,8,2,2,'#fff'); F(40,9,8,1,'#3a8a4a');
-    // corpo - top coqueiros
-    F(20,16,8,4,skin); F(28,16,8,4,skin);
-    F(16,20,4,12,skin); F(20,20,8,12,coral); F(28,20,4,12,skin); F(32,20,8,12,coral);
-    F(21,22,1,2,palm); F(25,22,1,2,palm); F(21,26,1,2,palm); F(25,26,1,2,palm);
-    F(23,30,2,2,coralD);
-    // overlay corpo
-    F(20,32,8,4,'rgba(0,0,0,0)'); F(28,32,8,4,'rgba(0,0,0,0)');
-    F(16,36,4,12,skin); F(20,36,8,12,coral); F(28,36,4,12,skin); F(32,36,8,12,coral);
-    // braços
-    F(44,16,4,4,skin); F(48,16,4,4,skin); F(40,20,4,12,skin); F(44,20,4,12,skin); F(48,20,4,12,skin); F(52,20,4,12,skin);
-    F(44,20,4,3,coral);
-    F(44,32,4,4,'rgba(0,0,0,0)'); F(48,32,4,4,'rgba(0,0,0,0)'); F(40,36,4,12,skin); F(44,36,4,12,skin); F(48,36,4,12,skin); F(52,36,4,12,skin); F(44,36,4,3,coral);
-    F(32,48,4,4,skin); F(36,48,4,4,skin); F(28,52,4,12,skin); F(32,52,4,12,skin); F(36,52,4,12,skin); F(40,52,4,12,skin); F(32,52,4,3,coral);
-    // pernas - jeans rasgado
-    F(4,16,4,4,skin); F(8,16,4,4,skin); F(0,20,4,12,denim); F(4,20,4,12,denim); F(8,20,4,12,denim); F(12,20,4,12,denim); F(5,25,2,2,'#d9c7a5');
-    F(4,32,4,4,'rgba(0,0,0,0)'); F(8,32,4,4,'rgba(0,0,0,0)'); F(0,36,4,12,denim); F(4,36,4,12,denim); F(8,36,4,12,denim); F(12,36,4,12,denim);
-    F(20,48,4,4,skin); F(24,48,4,4,skin); F(16,52,4,12,denim); F(20,52,4,12,denim); F(24,52,4,12,denim); F(28,52,4,12,denim); F(21,57,2,2,'#d9c7a5');
+    const skin='#f8c8a0', hair='#7a3e26', blonde='#e9c46a', coral='#ff7f6e', denim='#6a8fb8', palm='#2a7a4a';
+    // HEAD base 8,8
+    fill(8,8,8,8,skin); fill(8,0,8,8,hair); fill(16,0,8,8,hair); fill(0,8,8,8,hair); fill(16,8,8,8,hair); fill(24,8,8,8,hair);
+    fill(0,14,8,2,blonde); fill(16,14,8,2,blonde); fill(24,14,8,2,blonde);
+    fill(9,10,2,2,'#3b1f0f'); fill(13,10,2,2,'#3b1f0f'); fill(10,11,1,1,'#fff'); fill(14,11,1,1,'#fff');
+    // HEAD OVERLAY - coroa de flores 40,8
+    fill(40,8,8,8,'rgba(0,0,0,0)'); fill(32,8,8,8,hair); fill(48,8,8,8,hair); fill(56,8,8,8,hair);
+    fill(40,0,8,8,'rgba(0,0,0,0)');
+    fill(40,8,8,2,hair);
+    fill(40,8,2,2,'#fff'); fill(42,8,2,2,'#ffeb3b'); fill(44,8,2,2,'#ff8ab0'); fill(46,8,2,2,'#fff');
+    // BODY 20,20 coral crop-top
+    fill(20,16,8,4,skin); fill(28,16,8,4,skin); fill(16,20,4,12,skin); fill(28,20,4,12,skin);
+    fill(20,20,8,12,coral); fill(32,20,8,12,coral);
+    fill(21,22,1,2,palm); fill(25,22,1,2,palm); fill(22,26,1,2,palm); fill(26,26,1,2,palm);
+    fill(23,30,2,2,'#d85a4a');
+    // ARMS skin + detalhe coqueiro
+    fill(44,16,4,4,skin); fill(48,16,4,4,skin); fill(40,20,4,12,skin); fill(44,20,4,12,skin); fill(44,20,4,4,coral); fill(48,20,4,12,skin); fill(52,20,4,12,skin);
+    fill(36,48,4,4,skin); fill(40,48,4,4,skin); fill(32,52,4,12,skin); fill(36,52,4,12,skin); fill(36,52,4,4,coral); fill(40,52,4,12,skin); fill(44,52,4,12,skin);
+    // LEGS denim shorts
+    fill(4,16,4,4,skin); fill(8,16,4,4,skin); fill(0,20,4,12,denim); fill(4,20,4,12,denim); fill(8,20,4,12,denim); fill(12,20,4,12,denim);
+    fill(20,48,4,4,skin); fill(24,48,4,4,skin); fill(16,52,4,12,denim); fill(20,52,4,12,denim); fill(24,52,4,12,denim); fill(28,52,4,12,denim);
+    fill(0,30,4,2,'#b8cfe8'); fill(16,62,8,2,'#b8cfe8');
   } else if(type==='sofia_princess'){
-    const skin='#f5c9a3', hair='#6b3a26', gold='#E8C468', white='#fffaf0';
-    F(8,8,8,8,skin); F(9,10,2,2,'#4a2a1a'); F(13,10,2,2,'#4a2a1a'); F(8,0,8,8,hair); F(16,0,8,8,hair); F(0,8,8,8,hair); F(16,8,8,8,hair); F(24,8,8,8,hair);
-    F(40,0,8,2,gold); F(40,8,8,2,gold); // tiara no overlay
-    F(20,16,8,4,skin); F(28,16,8,4,skin); F(16,20,4,12,skin); F(20,20,8,12,white); F(28,20,4,12,skin); F(32,20,8,12,white);
-    F(20,28,8,2,gold); F(20,32,8,2,gold);
-    F(44,16,4,4,skin); F(48,16,4,4,skin); F(40,20,4,12,skin); F(44,20,4,12,skin); F(48,20,4,12,skin); F(52,20,4,12,skin); F(40,22,4,1,gold);
-    F(32,48,4,4,skin); F(36,48,4,4,skin); F(28,52,4,12,skin); F(32,52,4,12,skin); F(36,52,4,12,skin); F(40,52,4,12,skin); F(28,54,4,1,gold);
-    F(4,16,4,4,white); F(8,16,4,4,white); F(0,20,4,12,white); F(4,20,4,12,white); F(8,20,4,12,white); F(12,20,4,12,white); F(0,28,16,2,gold);
-    F(20,48,4,4,white); F(24,48,4,4,white); F(16,52,4,12,white); F(20,52,4,12,white); F(24,52,4,12,white); F(28,52,4,12,white); F(16,60,16,2,gold);
+    const skin='#f8c8a0', hair='#7a3e26', blonde='#e9c46a', white='#fffaf5', gold='#E8C468';
+    fill(8,8,8,8,skin); fill(8,0,8,8,hair); fill(16,0,8,8,hair); fill(0,8,8,8,hair); fill(16,8,8,8,hair); fill(24,8,8,8,hair);
+    fill(0,14,8,2,blonde); fill(16,14,8,2,blonde); fill(24,14,8,2,blonde);
+    // overlay crown gold
+    fill(40,0,8,2,gold); fill(40,8,8,2,gold);
+    fill(20,20,8,12,white); fill(32,20,8,12,white); fill(20,16,8,4,skin); fill(28,16,8,4,skin); fill(16,20,4,12,skin); fill(28,20,4,12,skin);
+    fill(20,30,8,2,gold); fill(32,30,8,2,gold);
+    fill(44,16,4,4,skin); fill(48,16,4,4,skin); fill(40,20,4,12,skin); fill(44,20,4,12,white); fill(48,20,4,12,skin); fill(52,20,4,12,white);
+    fill(36,48,4,4,skin); fill(40,48,4,4,skin); fill(32,52,4,12,skin); fill(36,52,4,12,white); fill(40,52,4,12,skin); fill(44,52,4,12,white);
+    fill(4,16,4,4,skin); fill(8,16,4,4,skin); fill(0,20,4,12,white); fill(4,20,4,12,white); fill(8,20,4,12,white); fill(12,20,4,12,white);
+    fill(0,30,4,2,gold); fill(4,30,4,2,gold);
+    fill(20,48,4,4,skin); fill(24,48,4,4,skin); fill(16,52,4,12,white); fill(20,52,4,12,white); fill(24,52,4,12,white); fill(28,52,4,12,white);
+    fill(16,62,4,2,gold); fill(20,62,4,2,gold);
   } else if(type==='lucas'){
-    const skin='#c98a5e', hair='#3a2818', shirt='#f4f0e6';
-    F(8,8,8,8,skin); F(8,0,8,8,hair); F(16,0,8,8,hair); F(0,8,8,8,hair); F(16,8,8,8,hair); F(24,8,8,8,hair);
-    F(20,20,8,12,shirt); F(4,20,4,12,shirt); F(44,20,4,12,skin); F(32,52,4,12,skin); F(4,20,4,12,shirt); F(20,48,4,12,'#2b3550');
-  } else if(type==='lucas_formal'){
-    const skin='#c98a5e', hair='#3a2818';
-    F(8,8,8,8,skin); F(8,0,8,8,hair);
-    F(20,20,8,12,'#1B4D6B'); F(4,20,4,12,'#1B4D6B'); F(44,20,4,12,skin); F(32,52,4,12,skin);
+    const skin='#d8a07a', hair='#3a2818', shirt='#f4f0e6', pants='#2b3550';
+    fill(8,8,8,8,skin); fill(8,0,8,8,hair); fill(0,8,8,8,hair); fill(16,8,8,8,hair); fill(24,8,8,8,hair); fill(16,0,8,8,hair);
+    fill(20,20,8,12,shirt); fill(32,20,8,12,shirt); fill(16,20,4,12,shirt); fill(28,20,4,12,shirt); fill(20,16,8,4,shirt); fill(28,16,8,4,shirt);
+    fill(44,16,4,4,skin); fill(40,20,4,12,shirt); fill(44,20,4,12,skin); fill(36,48,4,4,skin); fill(32,52,4,12,shirt);
+    fill(4,16,4,4,pants); fill(0,20,4,12,pants); fill(4,20,4,12,pants); fill(20,48,4,4,pants); fill(20,52,4,12,pants);
+  } else {
+    const skin='#d8a07a', hair='#3a2818', shirt='#1B4D6B', pants='#2b3550';
+    fill(8,8,8,8,skin); fill(8,0,8,8,hair); fill(0,8,8,8,hair); fill(16,8,8,8,hair); fill(24,8,8,8,hair); fill(16,0,8,8,hair);
+    fill(20,20,8,12,shirt); fill(32,20,8,12,shirt); fill(16,20,4,12,shirt); fill(28,20,4,12,shirt); fill(20,16,8,4,shirt); fill(28,16,8,4,shirt);
+    fill(44,16,4,4,skin); fill(40,20,4,12,shirt); fill(44,20,4,12,skin); fill(36,48,4,4,skin); fill(32,52,4,12,shirt);
+    fill(4,16,4,4,pants); fill(0,20,4,12,pants); fill(4,20,4,12,pants); fill(20,48,4,4,pants); fill(20,52,4,12,pants);
   }
   const tex=new THREE.CanvasTexture(c);
   tex.magFilter=THREE.NearestFilter; tex.minFilter=THREE.NearestFilter;
@@ -547,39 +537,45 @@ function createMinecraftSkin(type){
 
 function createMinecraftCharacter(skinTex){
   const group=new THREE.Group();
-  const mat=new THREE.MeshStandardMaterial({map:skinTex, transparent:true, alphaTest:0.2});
+  const mat=new THREE.MeshStandardMaterial({map:skinTex, transparent:true, alphaTest:0.3});
   mat.map.magFilter=THREE.NearestFilter; mat.map.minFilter=THREE.NearestFilter;
   group.userData.material = mat;
 
-  // cabeça 8x8x8 - frente 8,8
+  // Cabeça base 8x8x8 frente 8,8
   const head = createSkinnedBox(0.4,0.4,0.4, 8,8,8, 8,8, mat);
-  head.position.y=1.5; group.add(head); group.userData.head=head;
-  // chapéu / segunda camada 40,8 um pouco maior
-  const hat = createSkinnedBox(0.46,0.46,0.46, 8,8,8, 40,8, mat);
-  hat.position.y=1.5; group.add(hat); group.userData.hat=hat;
+  head.position.y=1.5;
+  group.add(head); group.userData.head=head;
 
-  // tronco 8x12x4 - frente 20,20
+  // Segunda camada chapéu / coroa de flores frente 40,8 - um pouco maior pra não dar z-fighting
+  const hat = createSkinnedBox(0.44,0.44,0.44, 8,8,8, 40,8, mat);
+  hat.position.y=1.5;
+  group.add(hat);
+
+  // Corpo 8x12x4 frente 20,20
   const body = createSkinnedBox(0.4,0.6,0.2, 8,12,4, 20,20, mat);
-  body.position.y=1.0; group.add(body); group.userData.body=body;
+  body.position.y=1.0;
+  group.add(body); group.userData.body=body;
 
-  // braço direito - frente 44,20
-  const rightArm = createSkinnedBox(0.2,0.6,0.2, 4,12,4, 44,20, mat);
-  rightArm.position.set(0.3,1.0,0); group.add(rightArm);
+  // Braço direito (nosso esquerdo) frente 44,20
+  const leftArm = createSkinnedBox(0.2,0.6,0.2, 4,12,4, 44,20, mat);
+  leftArm.position.set(-0.3,1.0,0);
+  group.add(leftArm); group.userData.leftArm=leftArm;
 
-  // braço esquerdo - novo layout 64x64 frente 32,48
-  const leftArm = createSkinnedBox(0.2,0.6,0.2, 4,12,4, 32,48, mat);
-  leftArm.position.set(-0.3,1.0,0); group.add(leftArm);
+  // Braço esquerdo (novo formato) frente 36,52
+  const rightArm = createSkinnedBox(0.2,0.6,0.2, 4,12,4, 36,52, mat);
+  rightArm.position.set(0.3,1.0,0);
+  group.add(rightArm); group.userData.rightArm=rightArm;
 
-  group.userData.leftArm=leftArm; group.userData.rightArm=rightArm;
+  // Perna direita frente 4,20
+  const leftLeg = createSkinnedBox(0.2,0.6,0.2, 4,12,4, 4,20, mat);
+  leftLeg.position.set(-0.1,0.4,0);
+  group.add(leftLeg); group.userData.leftLeg=leftLeg;
 
-  // perna direita - frente 4,20
-  const rightLeg = createSkinnedBox(0.2,0.6,0.2, 4,12,4, 4,20, mat);
-  rightLeg.position.set(0.1,0.4,0); group.add(rightLeg);
-  // perna esquerda - frente 20,48
-  const leftLeg = createSkinnedBox(0.2,0.6,0.2, 4,12,4, 20,48, mat);
-  leftLeg.position.set(-0.1,0.4,0); group.add(leftLeg);
+  // Perna esquerda frente 20,52
+  const rightLeg = createSkinnedBox(0.2,0.6,0.2, 4,12,4, 20,52, mat);
+  rightLeg.position.set(0.1,0.4,0);
+  group.add(rightLeg); group.userData.rightLeg=rightLeg;
 
-  group.userData.leftLeg=leftLeg; group.userData.rightLeg=rightLeg;
   return group;
 }
 
@@ -711,7 +707,7 @@ function setPlayerAction(kind, duration){
 }
 
 /* ============================================================
-   NPC "ELE" - SEU BONECO 3D (MANTIDO E MELHORADO)
+   NPC "ELE"
    ============================================================ */
 const eleGroup = new THREE.Group();
 const skinMat = new THREE.MeshStandardMaterial({ color: '#c98a5e', roughness: 0.7 });
@@ -993,7 +989,7 @@ $('giftCloseBtn').addEventListener('click', () => {
 });
 
 /* ============================================================
-   TRANSFORMATION CUTSCENE - ATUALIZADO PRA 3D
+   TRANSFORMATION CUTSCENE
    ============================================================ */
 function playTransformationCutscene() {
   state.transformed = true;
@@ -1069,7 +1065,7 @@ function checkMemories() {
 }
 
 /* ============================================================
-   INPUT - INTACTO
+   INPUT
    ============================================================ */
 const keysDown = {};
 window.addEventListener('keydown', (e) => {
@@ -1120,7 +1116,7 @@ function tryInteract() {
 }
 
 /* ============================================================
-   MOVEMENT / COLLISION - ATUALIZADO PRA 3D
+   MOVEMENT / COLLISION
    ============================================================ */
 const moveDir = new THREE.Vector3();
 const camForward = new THREE.Vector3();
@@ -1270,7 +1266,7 @@ $('soundToggle').addEventListener('click', () => {
 });
 
 /* ============================================================
-   CONTROLES ADAPTATIVOS - PC x CELULAR
+   CONTROLES ADAPTATIVOS
    ============================================================ */
 (function setupAdaptiveControls() {
   const style = document.createElement('style');
@@ -1293,7 +1289,6 @@ $('soundToggle').addEventListener('click', () => {
   if (isTouch) {
     const legacyPrompt = $('interactPrompt');
     if (legacyPrompt) legacyPrompt.classList.add('mobile-mode');
-
     const wrap = document.createElement('div');
     wrap.id = 'mcActionButtons';
     wrap.innerHTML = `
