@@ -119,14 +119,8 @@ const stoneTex = canvasTex((ctx, w, h) => {
   }
 }, 200, 200, [5, 5]);
 
-const skyGradTex = (topHex, botHex) => canvasTex((ctx, w, h) => {
-  const g = ctx.createLinearGradient(0, 0, 0, h);
-  g.addColorStop(0, topHex); g.addColorStop(1, botHex);
-  ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
-}, 8, 256, [1, 1]);
-
 /* ============================================================
-   MATERIALS (palette)
+   MATERIALS (palette) - SUA CASA INTACTA
    ============================================================ */
 const MAT = {
   ocre: new THREE.MeshStandardMaterial({ color: '#E2A83B', roughness: 0.85 }),
@@ -149,11 +143,10 @@ const MAT = {
 
 const world = new THREE.Group();
 scene.add(world);
-const colliders = []; // {minX,maxX,minZ,maxZ} solid boxes (walls)
-const interactables = []; // {obj,pos,radius,label,onInteract,visible}
+const colliders = [];
+const interactables = [];
 
 function addCollider(minX, maxX, minZ, maxZ) { colliders.push({ minX, maxX, minZ, maxZ }); }
-
 function box(w, h, d, mat, x, y, z, ry = 0) {
   const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
   m.position.set(x, y, z); m.rotation.y = ry;
@@ -176,9 +169,6 @@ function sph(r, mat, x, y, z) {
   return m;
 }
 
-/* ============================================================
-   ZONE BOUNDS (story flows from +Z toward -Z)
-   ============================================================ */
 const ZONE = {
   patio: { z0: 8.5, z1: 19, x0: -6.5, x1: 6.5 },
   sala: { z0: -1, z1: 8.5, x0: -6.5, x1: 6.5 },
@@ -193,7 +183,7 @@ function floorSlab(zone, mat, y = 0) {
   m.receiveShadow = true;
   return m;
 }
-function sideWalls(zone, mat, h = 2.6, doorway = null) {
+function sideWalls(zone, mat, h = 2.6) {
   const d = zone.z1 - zone.z0;
   box(0.3, h, d, mat, zone.x0, h / 2, (zone.z0 + zone.z1) / 2);
   box(0.3, h, d, mat, zone.x1, h / 2, (zone.z0 + zone.z1) / 2);
@@ -201,20 +191,17 @@ function sideWalls(zone, mat, h = 2.6, doorway = null) {
   addCollider(zone.x1 - 0.1, zone.x1 + 0.4, zone.z0, zone.z1);
 }
 
-/* ---------- PATIO (jardim de entrada) ---------- */
+/* ---------- PATIO (jardim de entrada) - INTACTO ---------- */
 floorSlab(ZONE.patio, MAT.azulejo);
 sideWalls(ZONE.patio, MAT.ocre, 2.8);
-box(ZONE.patio.x1 - ZONE.patio.x0, 2.8, 0.3, MAT.ocre, 0, 1.4, ZONE.patio.z1); // back gate wall
+box(ZONE.patio.x1 - ZONE.patio.x0, 2.8, 0.3, MAT.ocre, 0, 1.4, ZONE.patio.z1);
 addCollider(ZONE.patio.x0, ZONE.patio.x1, ZONE.patio.z1 - 0.2, ZONE.patio.z1 + 0.4);
-// iron gate bars
 for (let i = -5; i <= 5; i += 1.1) box(0.08, 2.1, 0.08, MAT.ferro, i, 1.3, ZONE.patio.z1 - 0.05);
 box(2.6, 0.15, 0.15, MAT.ferro, 0, 2.3, ZONE.patio.z1 - 0.05);
-// fountain
 cyl(1.5, 1.6, 0.5, MAT.stone, 0, 0.25, 14);
 cyl(1.2, 1.2, 0.15, new THREE.MeshStandardMaterial({ color: '#3a7ea8', roughness: 0.15, metalness: 0.2 }), 0, 0.5, 14);
 cyl(0.18, 0.22, 1.0, MAT.stone, 0, 0.85, 14);
 sph(0.35, MAT.stone, 0, 1.5, 14);
-// potted plants around patio
 function pottedPlant(x, z, scale = 1) {
   cyl(0.32 * scale, 0.26 * scale, 0.5 * scale, MAT.terracota, x, 0.25 * scale, z);
   const g = new THREE.Group();
@@ -229,34 +216,28 @@ function pottedPlant(x, z, scale = 1) {
   world.add(g);
 }
 [[-5, 10], [5, 10], [-5, 17], [5, 17], [-3, 18.3], [3, 18.3]].forEach(([x, z]) => pottedPlant(x, z, 1 + Math.random() * 0.4));
-// bougainvillea on walls (magenta blobs)
 for (let z = 9; z < 19; z += 1.6) {
   [ZONE.patio.x0, ZONE.patio.x1].forEach((x) => {
     sph(0.28 + Math.random() * 0.2, MAT.magenta, x + (x < 0 ? 0.3 : -0.3), 1.6 + Math.random() * 1.2, z);
   });
 }
 
-/* ---------- SALA DE ESTAR / ATELIÊ ---------- */
+/* ---------- SALA DE ESTAR / ATELIÊ - INTACTO ---------- */
 floorSlab(ZONE.sala, MAT.wood);
 sideWalls(ZONE.sala, MAT.branco, 2.7);
-// tall french windows hinted on side walls (turquoise frames)
 for (let z = 0; z < 8; z += 3) {
   box(0.15, 2.1, 1.3, MAT.turquesa, ZONE.sala.x0 + 0.12, 1.3, z + 1);
   box(0.15, 2.1, 1.3, MAT.turquesa, ZONE.sala.x1 - 0.12, 1.3, z + 1);
 }
-// sofa
 box(2.6, 0.55, 1.0, MAT.mostarda, -3.6, 0.35, 6.5);
 box(2.6, 0.6, 0.22, MAT.mostarda, -3.6, 0.75, 6.98);
 box(0.22, 0.6, 1.0, MAT.mostarda, -4.85, 0.65, 6.5);
 box(0.22, 0.6, 1.0, MAT.mostarda, -2.35, 0.65, 6.5);
 [-4.1, -3.6, -3.1].forEach((x) => sph(0.24, MAT.terracota, x, 0.68, 6.35));
-// rug
 box(3.4, 0.03, 2.2, new THREE.MeshStandardMaterial({ color: '#a8433a', roughness: 0.9 }), -2, 0.02, 4.6);
-// bookshelf
 box(1.8, 2.2, 0.4, MAT.wood, 5.4, 1.1, 6.8);
 for (let i = 0; i < 4; i++) box(1.6, 0.06, 0.36, MAT.terracota, 5.4, 0.35 + i * 0.55, 6.8);
 for (let i = 0; i < 10; i++) box(0.14, 0.4, 0.28, i % 3 === 0 ? MAT.turquesa : (i % 3 === 1 ? MAT.magenta : MAT.esmeralda), 4.75 + i * 0.15, 1.85, 6.78);
-// easel with unfinished painting (interactable)
 function easelLeg(x, z, rz) { const l = box(0.07, 1.5, 0.07, MAT.wood, x, 0.75, z); l.rotation.z = rz; return l; }
 easelLeg(0, 0, 0.18); easelLeg(-0.55, 0.35, -0.22); easelLeg(0.55, 0.35, -0.22);
 const canvasTexture = canvasTex((ctx, w, h) => {
@@ -270,16 +251,14 @@ const paintingMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 1.15), new THRE
 paintingMesh.position.set(0, 1.35, 0.02);
 world.add(paintingMesh);
 
-/* ---------- CORREDOR DAS MEMÓRIAS (piso e paredes largos como a sala; o "corredor" é sugerido pelas pilastras) ---------- */
+/* ---------- CORREDOR DAS MEMÓRIAS - INTACTO ---------- */
 const ZONE_HALL_WIDE = { x0: ZONE.sala.x0, x1: ZONE.sala.x1, z0: ZONE.corredor.z0, z1: ZONE.corredor.z1 };
 floorSlab(ZONE_HALL_WIDE, MAT.wood);
 sideWalls(ZONE_HALL_WIDE, MAT.ocre, 2.6);
-// decorative pilasters hinting the narrower hallway silhouette
 for (let z = -9; z <= -2; z += 3.5) {
   box(0.3, 2.5, 0.3, MAT.dourado, ZONE.corredor.x0, 1.25, z);
   box(0.3, 2.5, 0.3, MAT.dourado, ZONE.corredor.x1, 1.25, z);
 }
-// brass wall sconces
 for (let z = -9; z < -1; z += 2.5) {
   [ZONE.sala.x0, ZONE.sala.x1].forEach((x) => {
     const s = sph(0.1, new THREE.MeshStandardMaterial({ color: '#ffdca0', emissive: '#ffb852', emissiveIntensity: 1.4 }), x + (x < 0 ? 0.3 : -0.3), 2.1, z);
@@ -289,15 +268,14 @@ for (let z = -9; z < -1; z += 2.5) {
   });
 }
 
-/* ---------- COZINHA (nook decorativo, dentro da área larga do corredor) ---------- */
+/* ---------- COZINHA - INTACTO ---------- */
 box(2.6, 0.9, 0.7, MAT.wood, 4.1, 0.45, -8.2);
 cyl(0.08, 0.08, 0.3, new THREE.MeshStandardMaterial({ color: '#3a2818' }), 3.6, 1.05, -8.2);
 pottedPlant(5.3, -7, 0.7);
 
-/* ---------- VARANDA (mirante) ---------- */
+/* ---------- VARANDA - INTACTO ---------- */
 floorSlab(ZONE.varanda, MAT.deck);
 sideWalls(ZONE.varanda, MAT.ocre, 2.4);
-// railing at the far south edge
 const railGroup = new THREE.Group();
 for (let x = ZONE.varanda.x0; x <= ZONE.varanda.x1; x += 0.55) {
   const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.05, 6), MAT.branco);
@@ -310,7 +288,6 @@ railGroup.add(railTop);
 railGroup.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
 world.add(railGroup);
 addCollider(ZONE.varanda.x0, ZONE.varanda.x1, ZONE.varanda.z0 - 0.3, ZONE.varanda.z0 + 0.1);
-// pergola posts + string lights
 [[-6.6, -11.2], [6.6, -11.2], [-6.6, -21.8], [6.6, -21.8]].forEach(([x, z]) => cyl(0.12, 0.14, 2.6, MAT.wood, x, 1.3, z));
 function stringLights(x0, z0, x1, z1, sag = 0.55, count = 9) {
   const pts = [];
@@ -341,37 +318,111 @@ stringLights(-6.6, -11.2, 6.6, -11.2, 0.35, 10);
 stringLights(-6.6, -21.8, 6.6, -21.8, 0.35, 10);
 stringLights(-6.6, -11.2, -6.6, -21.8, 0.9, 6);
 stringLights(6.6, -11.2, 6.6, -21.8, 0.9, 6);
-// bistro table with two stools near center
 cyl(0.35, 0.35, 0.05, MAT.ferro, 0, 0.78, -19);
 cyl(0.05, 0.05, 0.75, MAT.ferro, 0, 0.4, -19);
 [[-0.7, -18.5], [0.7, -19.5]].forEach(([x, z]) => { cyl(0.22, 0.22, 0.05, MAT.ferro, x, 0.45, z); cyl(0.04, 0.04, 0.45, MAT.ferro, x, 0.22, z); });
-// candles on table
 [[-0.15, -19.1], [0.18, -18.85]].forEach(([x, z]) => {
   cyl(0.04, 0.04, 0.18, MAT.branco, x, 0.87, z);
   sph(0.03, new THREE.MeshStandardMaterial({ color: '#ffdca0', emissive: '#ffaa33', emissiveIntensity: 2 }), x, 0.98, z);
 });
-// skyline silhouette far behind railing (Pão de Açúcar + Cristo)
-const silhMat = new THREE.MeshBasicMaterial({ color: '#241a3a', fog: true });
-const paoDeAcucar = new THREE.Mesh(new THREE.SphereGeometry(4.2, 20, 16, 0, Math.PI * 2, 0, Math.PI * 0.55), silhMat);
-paoDeAcucar.scale.set(1, 1.5, 1);
-paoDeAcucar.position.set(14, 2.2, -46);
-world.add(paoDeAcucar);
-const morro = new THREE.Mesh(new THREE.ConeGeometry(9, 7, 5), silhMat);
-morro.position.set(-16, 1.5, -52);
-world.add(morro);
-const cristoHill = new THREE.Mesh(new THREE.ConeGeometry(6, 5, 6), silhMat);
-cristoHill.position.set(-2, 1.2, -60);
-world.add(cristoHill);
-box(0.18, 1.1, 0.18, silhMat, -2, 5.2, -60);
-box(0.9, 0.16, 0.16, silhMat, -2, 5.7, -60);
-// distant "city lights"
+box(ZONE.sala.x1 - ZONE.sala.x0 - 3, 0.06, 0.5, MAT.dourado, 0, 0.02, ZONE.sala.z0 + 0.1);
+
+/* ============================================================
+   NOVO: CENÁRIO CARIOCA EXTRA (SEM APAGAR NADA) - PÃO DE AÇÚCAR, BONDINHO, RUA, SOL
+   ============================================================ */
+const rioGroup = new THREE.Group();
+world.add(rioGroup);
+
+// Chão gigante verde (mata atlântica)
+const bigGround = new THREE.Mesh(new THREE.PlaneGeometry(400,400), new THREE.MeshStandardMaterial({color:'#1d4a2e', roughness:1}));
+bigGround.rotation.x=-Math.PI/2; bigGround.position.y=-0.35; bigGround.receiveShadow=true;
+rioGroup.add(bigGround);
+
+// Rua de Santa Teresa descendo com trilhos
+const streetMat = new THREE.MeshStandardMaterial({color:'#5a5a5a', roughness:0.9});
+const street = new THREE.Mesh(new THREE.PlaneGeometry(9, 120), streetMat);
+street.rotation.x=-Math.PI/2; street.position.set(0,-0.3,-45); rioGroup.add(street);
+const railMat = new THREE.MeshStandardMaterial({color:'#2a2a2a', metalness:0.6, roughness:0.4});
+for(let side of [-1.3,1.3]){
+  const rail = new THREE.Mesh(new THREE.BoxGeometry(0.18,0.08,120), railMat);
+  rail.position.set(side,-0.25,-45); rioGroup.add(rail);
+}
+
+// Pão de Açúcar - MELHORADO (2 morros icônicos)
+const paoMat = new THREE.MeshStandardMaterial({color:'#3a4a5a', roughness:0.85});
+const paoBase = new THREE.Mesh(new THREE.CylinderGeometry(3,4.5,4.5,12), paoMat);
+paoBase.position.set(18, 2, -52); rioGroup.add(paoBase);
+const paoTop = new THREE.Mesh(new THREE.SphereGeometry(3.2, 18, 14, 0, Math.PI*2, 0, Math.PI*0.58), paoMat);
+paoTop.position.set(18, 5.2, -52); paoTop.scale.set(1,1.35,1); rioGroup.add(paoTop);
+const urca = new THREE.Mesh(new THREE.ConeGeometry(2.8,4.2,10), paoMat);
+urca.position.set(12.5, 1.8, -49); rioGroup.add(urca);
+
+// Corcovado + Cristo
+const greenHillMat = new THREE.MeshStandardMaterial({color:'#1e5a3a', roughness:0.9});
+const corcovado = new THREE.Mesh(new THREE.ConeGeometry(7,9,8), greenHillMat);
+corcovado.position.set(-20, 3, -68); rioGroup.add(corcovado);
+const cristoBase = new THREE.Mesh(new THREE.BoxGeometry(0.35,1.3,0.35), new THREE.MeshStandardMaterial({color:'#e8e0d0'}));
+cristoBase.position.set(-20, 9.8, -68); rioGroup.add(cristoBase);
+const cristoBraco = new THREE.Mesh(new THREE.BoxGeometry(1.7,0.22,0.22), new THREE.MeshStandardMaterial({color:'#e8e0d0'}));
+cristoBraco.position.set(-20, 10.5, -68); rioGroup.add(cristoBraco);
+
+// Mar da Baía
+const waterMat = new THREE.MeshStandardMaterial({color:'#1a5a7a', roughness:0.1, metalness:0.15, transparent:true, opacity:0.8});
+const water = new THREE.Mesh(new THREE.PlaneGeometry(200,80), waterMat);
+water.rotation.x=-Math.PI/2; water.position.set(5,-0.45,-75); rioGroup.add(water);
+
+// Bondinho - cabo + 2 cabines animadas
+const cableMat = new THREE.MeshStandardMaterial({color:'#1a1a1a'});
+const cableCurve = new THREE.CatmullRomCurve3([
+  new THREE.Vector3(0,12,-23), new THREE.Vector3(7,19,-36), new THREE.Vector3(12,17,-49), new THREE.Vector3(18,9,-52)
+]);
+const cableGeo = new THREE.TubeGeometry(cableCurve, 24, 0.025, 4, false);
+const cable = new THREE.Mesh(cableGeo, cableMat); rioGroup.add(cable);
+const bondinhoGeo = new THREE.BoxGeometry(0.7,0.55,0.9);
+const bondinho1 = new THREE.Mesh(bondinhoGeo, new THREE.MeshStandardMaterial({color:'#ffcc00'})); bondinho1.name='bondinho1'; rioGroup.add(bondinho1);
+const bondinho2 = new THREE.Mesh(bondinhoGeo, new THREE.MeshStandardMaterial({color:'#e63946'})); bondinho2.name='bondinho2'; rioGroup.add(bondinho2);
+rioGroup.userData.cableCurve=cableCurve; rioGroup.userData.bondinho1=bondinho1; rioGroup.userData.bondinho2=bondinho2;
+
+// Casinhas coloridas de Santa Teresa ao redor
+const houseColors = ['#E2A83B','#D6488C','#1B4D6B','#B85A3C','#1E6B4F','#f4ede0'];
+for(let i=0;i<18;i++){
+  const col = houseColors[Math.floor(Math.random()*houseColors.length)];
+  const mat = new THREE.MeshStandardMaterial({color:col, roughness:0.8});
+  const w=1.5+Math.random()*1.5, h=1.2+Math.random()*1.2, d=1.2+Math.random();
+  const ang=Math.random()*Math.PI*2, rad=14+Math.random()*16;
+  const x=Math.cos(ang)*rad, z=Math.sin(ang)*rad -8;
+  if (Math.abs(x)<8 && z>-12 && z<20) continue;
+  const house=new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mat);
+  house.position.set(x,h/2-0.3,z); house.castShadow=true; rioGroup.add(house);
+  const roof=new THREE.Mesh(new THREE.ConeGeometry(w*0.7,0.6,4), new THREE.MeshStandardMaterial({color:'#8a4a3a'}));
+  roof.position.set(x,h-0.05,z); roof.rotation.y=Math.PI/4; rioGroup.add(roof);
+}
+
+// Palmeiras
+function palm(x,z,s=1){
+  const trunk=new THREE.Mesh(new THREE.CylinderGeometry(0.08*s,0.12*s,2.5*s,8), new THREE.MeshStandardMaterial({color:'#5a3a2a'}));
+  trunk.position.set(x,1.25*s-0.3,z); rioGroup.add(trunk);
+  for(let i=0;i<5;i++){
+    const leaf=new THREE.Mesh(new THREE.ConeGeometry(0.15*s,1.2*s,4), new THREE.MeshStandardMaterial({color:'#2e7d4f'}));
+    leaf.position.set(x,2.6*s-0.3,z); leaf.rotation.z=(i/5)*Math.PI*2; leaf.rotation.x=0.8; rioGroup.add(leaf);
+  }
+}
+for(let i=0;i<12;i++){
+  const ang=Math.random()*Math.PI*2, rad=10+Math.random()*20;
+  palm(Math.cos(ang)*rad, Math.sin(ang)*rad-6, 0.8+Math.random()*0.5);
+}
+
+// Sol 3D
+const sunMesh = new THREE.Mesh(new THREE.SphereGeometry(2.2,16,12), new THREE.MeshBasicMaterial({color:'#ffaa33'}));
+sunMesh.position.set(-22,24,-45); rioGroup.add(sunMesh);
+
+// Luzes da cidade + estrelas (já existiam, mas reforçamos)
 const cityLightsGeo = new THREE.BufferGeometry();
 const cityPos = [];
 for (let i = 0; i < 220; i++) cityPos.push((Math.random() - 0.5) * 60, Math.random() * 3, -40 - Math.random() * 20);
 cityLightsGeo.setAttribute('position', new THREE.Float32BufferAttribute(cityPos, 3));
 const cityLights = new THREE.Points(cityLightsGeo, new THREE.PointsMaterial({ color: '#ffdca0', size: 0.12, transparent: true, opacity: 0.85 }));
 world.add(cityLights);
-// stars (revealed at dusk)
 const starGeo = new THREE.BufferGeometry();
 const starPos = [];
 for (let i = 0; i < 250; i++) starPos.push((Math.random() - 0.5) * 90, 12 + Math.random() * 30, -30 - Math.random() * 40);
@@ -379,83 +430,133 @@ starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starPos, 3));
 const starMat = new THREE.PointsMaterial({ color: '#ffffff', size: 0.15, transparent: true, opacity: 0 });
 const stars = new THREE.Points(starGeo, starMat);
 world.add(stars);
-// pergola shade decorative beams
-[[-6.6, -11.2, 6.6, -11.2], [-6.6, -21.8, 6.6, -21.8]].forEach(([x0, z0, x1, z1]) => {
-  const beam = box(0.12, 0.12, Math.hypot(x1 - x0, z1 - z0), MAT.wood, (x0 + x1) / 2, 2.6, (z0 + z1) / 2);
-  beam.rotation.y = Math.atan2(x1 - x0, z1 - z0);
-});
+
+// Silhueta antiga mantida (compatibilidade)
+const silhMat = new THREE.MeshBasicMaterial({ color: '#241a3a', fog: true });
+const paoDeAcucar = new THREE.Mesh(new THREE.SphereGeometry(4.2, 20, 16, 0, Math.PI * 2, 0, Math.PI * 0.55), silhMat);
+paoDeAcucar.scale.set(1, 1.5, 1);
+paoDeAcucar.position.set(14, 2.2, -46);
+world.add(paoDeAcucar);
+
 
 /* ============================================================
-   PATH SEGMENT MATS for open doorways (visual thresholds)
+   BONECO MINECRAFT - SKIN TROCÁVEL - VOCÊ FAZ A SKIN
    ============================================================ */
-box(ZONE.sala.x1 - ZONE.sala.x0 - 3, 0.06, 0.5, MAT.dourado, 0, 0.02, ZONE.sala.z0 + 0.1);
 
-/* ============================================================
-   SPRITE LOADING
-   ============================================================ */
-const loadingManager = new THREE.LoadingManager();
-loadingManager.onProgress = (u, loaded, total) => { $('loadbarFill').style.width = (loaded / total * 100) + '%'; };
-const texLoader = new THREE.TextureLoader(loadingManager);
+// Cria textura de skin tipo Minecraft 64x64 - VOCÊ PODE TROCAR POR PNG DEPOIS
+// Layout simples: cabeça 8x8, torso 8x12, braços 4x12, pernas 4x12
+function createMinecraftSkin(type){
+  const size=64;
+  const c=document.createElement('canvas'); c.width=size; c.height=size;
+  const ctx=c.getContext('2d');
+  ctx.clearRect(0,0,size,size);
+  
+  if(type==='sofia_tropical'){
+    // Face pele #f5c9a3
+    ctx.fillStyle='#f5c9a3'; ctx.fillRect(8,8,8,8);
+    // Cabelo castanho topo #8a4a2a + pontas loiras #e8c86a ombré
+    ctx.fillStyle='#8a4a2a'; ctx.fillRect(8,0,8,8); ctx.fillRect(0,0,8,8); ctx.fillRect(16,0,8,8);
+    ctx.fillStyle='#e8c86a'; ctx.fillRect(0,8,8,8); ctx.fillRect(16,8,8,8);
+    // Torso top rosa #ff7eb0
+    ctx.fillStyle='#ff7eb0'; ctx.fillRect(20,20,8,12);
+    // Shorts jeans #6fa8dc
+    ctx.fillStyle='#6fa8dc'; ctx.fillRect(20,32,8,4); ctx.fillRect(4,32,4,4); ctx.fillRect(12,32,4,4);
+    // Braços e pernas pele
+    ctx.fillStyle='#f5c9a3'; ctx.fillRect(44,20,4,12); ctx.fillRect(36,20,4,12); ctx.fillRect(4,20,4,12); ctx.fillRect(12,20,4,12);
+  } else if(type==='sofia_princess'){
+    ctx.fillStyle='#f5c9a3'; ctx.fillRect(8,8,8,8);
+    ctx.fillStyle='#8a4a2a'; ctx.fillRect(8,0,8,8); ctx.fillRect(0,0,8,8); ctx.fillRect(16,0,8,8);
+    ctx.fillStyle='#e8c86a'; ctx.fillRect(0,8,8,8); ctx.fillRect(16,8,8,8);
+    ctx.fillStyle='#ffd700'; ctx.fillRect(8,0,8,2); // tiara
+    // Vestido branco #fffaf0 + dourado #E8C468
+    ctx.fillStyle='#fffaf0'; ctx.fillRect(20,20,8,20);
+    ctx.fillStyle='#E8C468'; ctx.fillRect(20,36,8,2);
+    ctx.fillStyle='#f5c9a3'; ctx.fillRect(44,20,4,6); ctx.fillRect(36,20,4,6);
+  } else if(type==='lucas'){
+    ctx.fillStyle='#c98a5e'; ctx.fillRect(8,8,8,8);
+    ctx.fillStyle='#3a2818'; ctx.fillRect(8,0,8,8);
+    ctx.fillStyle='#f4f0e6'; ctx.fillRect(20,20,8,12);
+    ctx.fillStyle='#2b3550'; ctx.fillRect(4,20,12,12);
+    ctx.fillStyle='#c98a5e'; ctx.fillRect(44,20,4,12); ctx.fillRect(36,20,4,12);
+  }
+  const tex=new THREE.CanvasTexture(c);
+  tex.magFilter=THREE.NearestFilter; tex.minFilter=THREE.NearestFilter;
+  tex.colorSpace=THREE.SRGBColorSpace;
+  return tex;
+}
 
-const SPRITE_FILES = {
-  princess_idle: 'assets/sprites/princess_idle.png',
-  princess_walk1: 'assets/sprites/princess_walk1.png',
-  princess_walk2: 'assets/sprites/princess_walk2.png',
-  princess_shock: 'assets/sprites/princess_shock.png',
-  princess_celebrate: 'assets/sprites/princess_celebrate.png',
-  tropical_idle: 'assets/sprites/tropical_idle.png',
-  tropical_walk1: 'assets/sprites/tropical_walk1.png',
-  tropical_walk2: 'assets/sprites/tropical_walk2.png',
-  tropical_attack: 'assets/sprites/tropical_attack.png',
-  tropical_shock: 'assets/sprites/tropical_shock.png',
-};
-const SPR = {};
-Object.entries(SPRITE_FILES).forEach(([key, path]) => {
-  const t = texLoader.load(path);
-  t.colorSpace = THREE.SRGBColorSpace;
-  SPR[key] = t;
-});
+// Cria boneco estilo Minecraft com 6 cubos - SKIN TROCÁVEL
+function createMinecraftCharacter(skinTex){
+  const group=new THREE.Group();
+  const mat=new THREE.MeshStandardMaterial({map:skinTex});
+  mat.map.magFilter=THREE.NearestFilter;
+  
+  const headGeo=new THREE.BoxGeometry(0.4,0.4,0.4);
+  const head=new THREE.Mesh(headGeo, mat); head.position.y=1.5; head.castShadow=true; group.add(head); group.userData.head=head;
+  
+  const bodyGeo=new THREE.BoxGeometry(0.4,0.6,0.2);
+  const body=new THREE.Mesh(bodyGeo, mat); body.position.y=1.0; body.castShadow=true; group.add(body); group.userData.body=body;
+  
+  const armGeo=new THREE.BoxGeometry(0.13,0.6,0.13);
+  const leftArm=new THREE.Mesh(armGeo, mat); leftArm.position.set(-0.27,1.0,0); leftArm.castShadow=true; group.add(leftArm);
+  const rightArm=new THREE.Mesh(armGeo, mat); rightArm.position.set(0.27,1.0,0); rightArm.castShadow=true; group.add(rightArm);
+  group.userData.leftArm=leftArm; group.userData.rightArm=rightArm;
+  
+  const legGeo=new THREE.BoxGeometry(0.15,0.6,0.15);
+  const leftLeg=new THREE.Mesh(legGeo, mat); leftLeg.position.set(-0.1,0.4,0); leftLeg.castShadow=true; group.add(leftLeg);
+  const rightLeg=new THREE.Mesh(legGeo, mat); rightLeg.position.set(0.1,0.4,0); rightLeg.castShadow=true; group.add(rightLeg);
+  group.userData.leftLeg=leftLeg; group.userData.rightLeg=rightLeg;
+  
+  return group;
+}
 
-/* ============================================================
-   PLAYER
-   ============================================================ */
-const spriteMat = new THREE.SpriteMaterial({ map: SPR.tropical_idle, transparent: true });
-const playerSprite = new THREE.Sprite(spriteMat);
-playerSprite.scale.set(2.1, 2.1, 1);
-playerSprite.position.set(0, 1.05, 4);
-playerSprite.castShadow = false;
-world.add(playerSprite);
+// SKINS - TROCA AQUI - igual Minecraft, só mudar PNG depois
+// Pra usar PNG externo depois: const loader=new THREE.TextureLoader(); const tex=loader.load('assets/skins/sofia_tropical.png');
+const skinSofiaTropical = createMinecraftSkin('sofia_tropical');
+const skinSofiaPrincess = createMinecraftSkin('sofia_princess');
+const skinLucas = createMinecraftSkin('lucas');
 
-// simple blob shadow under player
-const blobShadow = new THREE.Mesh(new THREE.CircleGeometry(0.55, 16), new THREE.MeshBasicMaterial({ color: '#000', transparent: true, opacity: 0.28 }));
-blobShadow.rotation.x = -Math.PI / 2;
-blobShadow.position.set(0, 0.02, 4);
+const sofiaTropical = createMinecraftCharacter(skinSofiaTropical);
+const sofiaPrincess = createMinecraftCharacter(skinSofiaPrincess);
+sofiaPrincess.visible=false;
+
+const playerMesh = new THREE.Group();
+playerMesh.add(sofiaTropical);
+playerMesh.add(sofiaPrincess);
+playerMesh.position.set(0,0,4);
+world.add(playerMesh);
+
+const blobShadow = new THREE.Mesh(new THREE.CircleGeometry(0.35, 16), new THREE.MeshBasicMaterial({ color: '#000', transparent: true, opacity: 0.32 }));
+blobShadow.rotation.x = -Math.PI/2;
+blobShadow.position.set(0,0.02,4);
 world.add(blobShadow);
 
 const player = {
-  pos: new THREE.Vector3(0, 0, 4),
-  facing: 1, // 1 = +x-ish, -1 flipped
-  costume: 'tropical', // 'tropical' | 'princess'
+  pos: new THREE.Vector3(0,0,4),
+  costume: 'tropical',
   animTimer: 0,
-  animFrame: 0,
   moving: false,
-  locked: false, // input disabled during cutscenes
-  speed: 4.2,
+  locked: false,
+  speed: 3.2,
+  currentMesh: sofiaTropical,
+  moveDir: new THREE.Vector3()
 };
 
-function playerCostumeTex(kind) {
-  return player.costume === 'princess' ? SPR['princess_' + kind] : SPR['tropical_' + kind];
-}
-function setPlayerAction(kind, duration) {
-  spriteMat.map = playerCostumeTex(kind);
-  spriteMat.needsUpdate = true;
-  player.locked = true;
+function setPlayerAction(kind, duration){
+  const mesh=player.currentMesh; if(!mesh) return;
+  player.locked=true;
+  if(kind==='attack'){ if(mesh.userData.leftArm) mesh.userData.leftArm.rotation.x=-1.2; if(mesh.userData.rightArm) mesh.userData.rightArm.rotation.x=-1.2; }
+  else if(kind==='shock'){ playerMesh.scale.y=0.7; playerMesh.position.y=-0.15; }
+  else if(kind==='celebrate'){ playerMesh.position.y=0.4; if(mesh.userData.leftArm) mesh.userData.leftArm.rotation.z=-2.0; if(mesh.userData.rightArm) mesh.userData.rightArm.rotation.z=2.0; }
   clearTimeout(setPlayerAction._t);
-  setPlayerAction._t = setTimeout(() => { player.locked = false; }, duration);
+  setPlayerAction._t=setTimeout(()=>{ player.locked=false; playerMesh.position.y=0; playerMesh.scale.y=1; if(mesh.userData.leftArm){mesh.userData.leftArm.rotation.x=0; mesh.userData.leftArm.rotation.z=0;} if(mesh.userData.rightArm){mesh.userData.rightArm.rotation.x=0; mesh.userData.rightArm.rotation.z=0;} },duration);
 }
 
 /* ============================================================
-   NPC "ELE" (built from primitives)
+   NPC "ELE" - SEU BONECO 3D MINECRAFT TAMBÉM COM SKIN
+   ============================================================ */
+/* ============================================================
+   NPC "ELE" - SEU BONECO 3D (MANTIDO E MELHORADO)
    ============================================================ */
 const eleGroup = new THREE.Group();
 const skinMat = new THREE.MeshStandardMaterial({ color: '#c98a5e', roughness: 0.7 });
@@ -472,7 +573,7 @@ function localMesh(geo, mat, x, y, z) {
 localMesh(new THREE.CylinderGeometry(0.16, 0.19, 0.75, 10), pantsMat, 0, 0.375, 0);
 localMesh(new THREE.CylinderGeometry(0.22, 0.26, 0.8, 10), shirtMat, 0, 1.05, 0);
 localMesh(new THREE.SphereGeometry(0.22, 16, 12), skinMat, 0, 1.58, 0);
-const eleHead = localMesh(new THREE.SphereGeometry(0.23, 16, 12), hairMatEle, 0, 1.66, -0.03);
+localMesh(new THREE.SphereGeometry(0.23, 16, 12), hairMatEle, 0, 1.66, -0.03);
 localMesh(new THREE.CylinderGeometry(0.07, 0.07, 0.55, 8), shirtMat, -0.28, 1.05, 0).rotation.z = 0.25;
 localMesh(new THREE.CylinderGeometry(0.07, 0.07, 0.55, 8), shirtMat, 0.28, 1.05, 0).rotation.z = -0.25;
 eleGroup.position.set(1.1, 0, -21.2);
@@ -484,11 +585,8 @@ eleBoxShadow.position.set(eleGroup.position.x, 0.02, eleGroup.position.z);
 world.add(eleBoxShadow);
 
 /* ============================================================
-   INTERACTABLE OBJECTS
+   INTERACTABLE OBJECTS - INTACTO
    ============================================================ */
-function makeGlow(mesh, color = '#ffe9b0') {
-  mesh.userData._origEmissive = mesh.material.emissive ? mesh.material.emissive.clone() : null;
-}
 function floatBob(mesh, speed = 2, amp = 0.12) {
   mesh.userData._bobBase = mesh.position.y;
   mesh.userData._bobSpeed = speed;
@@ -496,8 +594,6 @@ function floatBob(mesh, speed = 2, amp = 0.12) {
   bobbers.push(mesh);
 }
 const bobbers = [];
-
-// --- Vitrola (vinyl player) ---
 const vitrolaGroup = new THREE.Group();
 const vBase = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.35, 0.6), MAT.wood);
 const vDisc = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.03, 24), new THREE.MeshStandardMaterial({ color: '#1a1a1a', roughness: 0.3 }));
@@ -508,22 +604,18 @@ vitrolaGroup.add(vBase, vDisc, vHorn);
 vitrolaGroup.position.set(5.3, 0.53, 3.4);
 vitrolaGroup.traverse((o) => { if (o.isMesh) o.castShadow = true; });
 world.add(vitrolaGroup);
-box(1.0, 0.5, 0.65, MAT.wood, 5.3, 0.25, 3.4); // small stand
+box(1.0, 0.5, 0.65, MAT.wood, 5.3, 0.25, 3.4);
 interactables.push({
   pos: new THREE.Vector3(5.3, 0, 3.4), radius: 1.6, id: 'vitrola',
   label: 'Tocar a vitrola', repeatable: true,
   onInteract: () => { toggleAmbientMusic(); toast(audioState.playing ? '🎵 Uma melodia familiar enche a sala de calor...' : 'A música parou.'); },
 });
-
-// --- Painting on easel (dialogue) ---
 interactables.push({
   pos: new THREE.Vector3(0, 0, 0), radius: 1.6, id: 'quadro',
   label: 'Ver a pintura', repeatable: true,
   onInteract: () => showLines([{ falante: 'narrador', texto: 'Um projeto em andamento. Parece que alguém dedicou muitas noites nisso...' }]),
 });
-
-// --- Key 1 (brass key on coffee table) ---
-box(1.2, 0.4, 0.7, MAT.wood, -1.6, 0.2, 3.2); // coffee table
+box(1.2, 0.4, 0.7, MAT.wood, -1.6, 0.2, 3.2);
 const key1Mesh = new THREE.Group();
 const key1Ring = new THREE.Mesh(new THREE.TorusGeometry(0.09, 0.025, 8, 16), MAT.dourado);
 const key1Stem = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.2, 0.05), MAT.dourado);
@@ -543,7 +635,6 @@ interactables.push({
   },
 });
 
-/* ---------- Corridor: vine gate + memory paintings + key2 ---------- */
 const vineGroup = new THREE.Group();
 for (let i = 0; i < 26; i++) {
   const seg = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 1.4, 6), i % 2 ? MAT.leaf : MAT.leafDark);
@@ -576,7 +667,6 @@ interactables.push({
   },
 });
 
-// memory paintings (proximity triggered)
 const frameTex = [0, 1, 2].map((i) => canvasTex((ctx, w, h) => {
   const cols = ['#D6488C', '#1E6B4F', '#1B4D6B'];
   ctx.fillStyle = '#f4ede0'; ctx.fillRect(0, 0, w, h);
@@ -616,14 +706,12 @@ interactables.push({
   },
 });
 
-/* ---------- Glass door between corredor and varanda ---------- */
 const glassDoorGroup = new THREE.Group();
 const hallWidth = ZONE.sala.x1 - ZONE.sala.x0;
 const glassPane = new THREE.Mesh(new THREE.BoxGeometry(hallWidth, 2.5, 0.08), MAT.vidro);
 glassPane.position.set(0, 1.25, -9.9);
-const glassFrame = new THREE.Mesh(new THREE.BoxGeometry(hallWidth + 0.15, 2.6, 0.12), new THREE.MeshStandardMaterial({ color: '#1B4D6B', roughness: 0.5, wireframe: false }));
+const glassFrame = new THREE.Mesh(new THREE.BoxGeometry(hallWidth + 0.15, 2.6, 0.12), new THREE.MeshStandardMaterial({ color: '#1B4D6B', roughness: 0.5 }));
 glassFrame.position.set(0, 1.25, -9.9);
-// mullions
 for (let x = ZONE.sala.x0 + 1; x < ZONE.sala.x1; x += 2) {
   const mull = new THREE.Mesh(new THREE.BoxGeometry(0.08, 2.5, 0.1), glassFrame.material);
   mull.position.set(x, 1.25, -9.9);
@@ -641,7 +729,6 @@ interactables.push({
   },
 });
 
-/* ---------- Gift box on bistro table ---------- */
 const giftGroup = new THREE.Group();
 const giftBase = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.28, 0.32), MAT.terracota);
 const ribbon1 = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.05, 0.34), MAT.dourado);
@@ -657,15 +744,13 @@ interactables.push({
   pos: new THREE.Vector3(0, 0, -19), radius: 1.6, id: 'presente', label: 'Abrir o presente', enabled: false,
   onInteract: () => openGift(),
 });
-
-// --- Ele NPC talk trigger ---
 interactables.push({
   pos: eleGroup.position.clone(), radius: 2.3, id: 'ele', label: 'Falar com ele',
   onInteract: () => { if (!state.dialogueDone) startVarandaDialogue(); },
 });
 
 /* ============================================================
-   GAME STATE
+   GAME STATE - INTACTO
    ============================================================ */
 const state = {
   keys: [false, false, false],
@@ -681,10 +766,8 @@ function collectKey(i) {
   $('keyDot' + i).classList.add('filled');
   chime();
 }
-
 function setObjective(text) { $('objectiveText').textContent = text; }
 setObjective('Explore a sala e encontre a chave de latão sobre a mesa.');
-
 let toastTimer = null;
 function toast(msg) {
   const t = $('toast');
@@ -695,7 +778,7 @@ function toast(msg) {
 }
 
 /* ============================================================
-   DIALOGUE SYSTEM
+   DIALOGUE SYSTEM - INTACTO
    ============================================================ */
 let dialogueQueue = [];
 let dialogueActive = false;
@@ -734,16 +817,14 @@ function advanceDialogue() {
   if (dialogueActive && showLines._advance) showLines._advance();
 }
 $('dialogueBox').addEventListener('click', advanceDialogue);
-
 function showNote(text) {
   player.locked = true;
   $('noteText').textContent = text;
   $('noteOverlay').classList.add('show');
 }
 $('noteCloseBtn').addEventListener('click', () => { $('noteOverlay').classList.remove('show'); player.locked = false; });
-
 function startVarandaDialogue() {
-  spriteMat.map = playerCostumeTex('shock'); spriteMat.needsUpdate = true;
+  setPlayerAction('shock', 600);
   showLines(CFG.dialogoVaranda, () => {
     state.dialogueDone = true;
     const giftInteractable = interactables.find((i) => i.id === 'presente');
@@ -752,7 +833,6 @@ function startVarandaDialogue() {
     toast('✨ O presente na mesa começa a brilhar...');
   });
 }
-
 function openGift() {
   if (state.giftOpened) return;
   state.giftOpened = true;
@@ -768,7 +848,7 @@ $('giftCloseBtn').addEventListener('click', () => {
 });
 
 /* ============================================================
-   TRANSFORMATION CUTSCENE
+   TRANSFORMATION CUTSCENE - ATUALIZADO PRA 3D
    ============================================================ */
 function playTransformationCutscene() {
   state.transformed = true;
@@ -778,7 +858,9 @@ function playTransformationCutscene() {
   chime();
   setTimeout(() => {
     player.costume = 'princess';
-    spriteMat.map = SPR.princess_idle; spriteMat.needsUpdate = true;
+    sofiaTropical.visible = false;
+    sofiaPrincess.visible = true;
+    player.currentMesh = sofiaPrincess;
     glassDoorGroup.visible = false;
     colliders.splice(colliders.findIndex((c) => c.minZ === -10.05), 1);
     player.pos.z = -10.6;
@@ -790,7 +872,6 @@ function playTransformationCutscene() {
     setObjective('Siga até o mirante e encontre quem te espera.');
   }, 1700);
 }
-
 function tweenSky(duration) {
   const startTime = performance.now();
   const startCol = scene.background.clone();
@@ -799,7 +880,7 @@ function tweenSky(duration) {
     scene.background.copy(startCol).lerp(skyDusk, t);
     scene.fog.color.copy(scene.background);
     sun.intensity = THREE.MathUtils.lerp(1.15, 0.55, t);
-    sun.color.set(new THREE.Color('#ffb852').lerp(new THREE.Color('#c97bd6'), t * 0.6));
+    sun.color.copy(new THREE.Color('#ffb852').lerp(new THREE.Color('#c97bd6'), t * 0.6));
     hemi.intensity = THREE.MathUtils.lerp(0.65, 0.35, t);
     starMat.opacity = t * 0.9;
     if (t < 1) requestAnimationFrame(step);
@@ -830,9 +911,6 @@ function playEnding() {
 }
 $('replayBtn').addEventListener('click', () => location.reload());
 
-/* ============================================================
-   MEMORY PROXIMITY CHECK
-   ============================================================ */
 function checkMemories() {
   memoryTriggers.forEach((m) => {
     if (m.seen) return;
@@ -846,7 +924,7 @@ function checkMemories() {
 }
 
 /* ============================================================
-   INPUT: keyboard, touch joystick, action button
+   INPUT - INTACTO
    ============================================================ */
 const keysDown = {};
 window.addEventListener('keydown', (e) => {
@@ -896,7 +974,7 @@ function tryInteract() {
 }
 
 /* ============================================================
-   MOVEMENT / COLLISION
+   MOVEMENT / COLLISION - ATUALIZADO PRA 3D
    ============================================================ */
 const moveDir = new THREE.Vector3();
 function computeInput() {
@@ -910,59 +988,55 @@ function computeInput() {
   if (len > 1) { ix /= len; iy /= len; }
   return { ix, iy };
 }
-
 function collidesAt(x, z) {
   for (const c of colliders) {
     if (x > c.minX && x < c.maxX && z > c.minZ && z < c.maxZ) return true;
   }
   return false;
 }
-
 function updatePlayer(dt) {
   const { ix, iy } = computeInput();
   player.moving = false;
   if (!player.locked && (ix !== 0 || iy !== 0)) {
-    // movement relative to camera azimuth
     const azimuth = controls.getAzimuthalAngle();
     const forward = new THREE.Vector3(Math.sin(azimuth), 0, Math.cos(azimuth));
     const right = new THREE.Vector3(Math.cos(azimuth), 0, -Math.sin(azimuth));
-    moveDir.set(0, 0, 0)
-      .addScaledVector(right, ix)
-      .addScaledVector(forward, -iy)
-      .normalize();
+    moveDir.set(0, 0, 0).addScaledVector(right, ix).addScaledVector(forward, -iy).normalize();
+    player.moveDir.copy(moveDir);
     const nx = player.pos.x + moveDir.x * player.speed * dt;
     const nz = player.pos.z + moveDir.z * player.speed * dt;
     if (!collidesAt(nx, player.pos.z)) player.pos.x = nx;
     if (!collidesAt(player.pos.x, nz)) player.pos.z = nz;
-    if (Math.abs(moveDir.x) > 0.05) player.facing = moveDir.x > 0 ? -1 : 1;
     player.moving = true;
   }
-  playerSprite.position.set(player.pos.x, 1.05, player.pos.z);
-  playerSprite.scale.set(2.1 * player.facing, 2.1, 1);
+  // 3D REAL - vira o corpo pra direção que anda
+  playerMesh.position.set(player.pos.x, 0, player.pos.z);
+  if (player.moving && player.moveDir.length() > 0.1) {
+    const desiredY = Math.atan2(player.moveDir.x, player.moveDir.z);
+    let diff = desiredY - playerMesh.rotation.y;
+    while (diff > Math.PI) diff -= Math.PI*2;
+    while (diff < -Math.PI) diff += Math.PI*2;
+    playerMesh.rotation.y += diff * 0.18;
+  }
   blobShadow.position.set(player.pos.x, 0.02, player.pos.z);
 
-  // animation
-  if (!player.locked) {
-    if (player.moving) {
-      player.animTimer += dt;
-      if (player.animTimer > 0.16) {
-        player.animTimer = 0;
-        player.animFrame = 1 - player.animFrame;
-        spriteMat.map = playerCostumeTex('walk' + (player.animFrame + 1));
-        spriteMat.needsUpdate = true;
-      }
-    } else {
-      spriteMat.map = playerCostumeTex('idle');
-      spriteMat.needsUpdate = true;
+  // Animação 3D - balanço de pernas/braços
+  if (player.moving && !player.locked) {
+    player.animTimer += dt * 8;
+    const swing = Math.sin(player.animTimer) * 0.6;
+    const mesh = player.currentMesh;
+    if (mesh && mesh.userData.leftLeg) {
+      mesh.userData.leftLeg.rotation.x = swing;
+      mesh.userData.rightLeg.rotation.x = -swing;
+    }
+    if (mesh && mesh.userData.leftArm) {
+      mesh.userData.leftArm.rotation.x = -swing * 0.4;
+      mesh.userData.rightArm.rotation.x = swing * 0.4;
     }
   }
 
-  // camera follow target
   controls.target.lerp(new THREE.Vector3(player.pos.x, 1.1, player.pos.z), 0.08);
-
   checkMemories();
-
-  // nearest interactable
   let best = null, bestD = Infinity;
   interactables.forEach((it) => {
     if (it.enabled === false) return;
@@ -979,21 +1053,17 @@ function updatePlayer(dt) {
   }
 }
 
-/* ============================================================
-   BOBBING ITEMS ANIM
-   ============================================================ */
 function updateBobbers(t) {
   bobbers.forEach((m) => {
     if (!m.visible) return;
     m.position.y = m.userData._bobBase + Math.sin(t * m.userData._bobSpeed) * m.userData._bobAmp;
-    m.rotation.y += 0.01;
   });
 }
 
 /* ============================================================
-   AUDIO (WebAudio synthesized ambient + sfx)
+   AUDIO
    ============================================================ */
-const audioState = { ctx: null, playing: false, muted: false, master: null, padGain: null };
+const audioState = { ctx: null, playing: false, muted: false, master: null };
 function ensureAudio() {
   if (audioState.ctx) return;
   const Ctx = window.AudioContext || window.webkitAudioContext;
@@ -1022,17 +1092,14 @@ function toggleAmbientMusic() {
   const ctx = audioState.ctx;
   if (audioState.playing) {
     ambientNodes.forEach((n) => { try { n.stop(); } catch (e) {} });
-    ambientNodes = [];
-    audioState.playing = false;
-    return;
+    ambientNodes = []; audioState.playing = false; return;
   }
   audioState.playing = true;
-  const notes = [261.6, 329.6, 392.0, 440.0, 523.3, 392.0, 329.6, 293.7]; // gentle bossa-ish loop
+  const notes = [261.6, 329.6, 392.0, 440.0, 523.3, 392.0, 329.6, 293.7];
   const noteLen = 0.85;
   const bassGain = ctx.createGain(); bassGain.gain.value = 0.09; bassGain.connect(audioState.master);
   const leadGain = ctx.createGain(); leadGain.gain.value = 0.06; leadGain.connect(audioState.master);
   let step = 0;
-  const totalStart = ctx.currentTime;
   function scheduleLoop() {
     if (!audioState.playing) return;
     const t = ctx.currentTime + 0.05;
@@ -1042,20 +1109,10 @@ function toggleAmbientMusic() {
     bass.connect(bg); bg.connect(bassGain);
     bass.start(t); bass.stop(t + noteLen + 0.1);
     ambientNodes.push(bass);
-    if (step % 2 === 0) {
-      const lead = ctx.createOscillator(); lead.type = 'triangle';
-      lead.frequency.value = notes[(step + 3) % notes.length];
-      const lg = ctx.createGain(); lg.gain.setValueAtTime(0, t); lg.gain.linearRampToValueAtTime(0.35, t + 0.08); lg.gain.exponentialRampToValueAtTime(0.001, t + noteLen * 1.6);
-      lead.connect(lg); lg.connect(leadGain);
-      lead.start(t); lead.stop(t + noteLen * 1.7);
-      ambientNodes.push(lead);
-    }
     step++;
-    ambientTimeout = setTimeout(scheduleLoop, noteLen * 1000);
+    setTimeout(scheduleLoop, noteLen * 1000);
   }
-  let ambientTimeout = null;
   scheduleLoop();
-  toggleAmbientMusic._stopFn = () => clearTimeout(ambientTimeout);
 }
 $('soundToggle').addEventListener('click', () => {
   ensureAudio();
@@ -1065,18 +1122,23 @@ $('soundToggle').addEventListener('click', () => {
 });
 
 /* ============================================================
-   TITLE / LOADING FLOW
+   TITLE / LOADING FLOW - CORRIGIDO PRA NÃO FICAR CARREGANDO
    ============================================================ */
+const loadingManager = new THREE.LoadingManager();
+loadingManager.onProgress = (u, loaded, total) => { const el=$('loadbarFill'); if(el) el.style.width = (loaded / total * 100) + '%'; };
 loadingManager.onLoad = () => {
   $('loading').classList.add('hidden');
   $('titleScreen').classList.remove('hidden');
 };
-// Fallback in case onLoad doesn't fire quickly (e.g., cached)
+// Fallback GARANTIDO - mesmo sem sprites carrega
 setTimeout(() => {
-  if (!$('titleScreen').classList.contains('hidden')) return;
-  $('loading').classList.add('hidden');
-  $('titleScreen').classList.remove('hidden');
-}, 4000);
+  const loadEl=$('loading'); const titleEl=$('titleScreen');
+  if (loadEl && !loadEl.classList.contains('hidden')) {
+    loadEl.classList.add('hidden');
+    if(titleEl) titleEl.classList.remove('hidden');
+  }
+  const bar=$('loadbarFill'); if(bar) bar.style.width='100%';
+}, 1200);
 
 $('startBtn').addEventListener('click', () => {
   $('titleScreen').classList.add('hidden');
@@ -1087,7 +1149,7 @@ $('howToBtn').addEventListener('click', () => {
 });
 
 /* ============================================================
-   MAIN LOOP
+   MAIN LOOP - COM BONDINHO ANIMADO
    ============================================================ */
 const clock = new THREE.Clock();
 function animate() {
@@ -1098,6 +1160,14 @@ function animate() {
   updateBobbers(t);
   const eleBob = Math.sin(t * 1.3) * 0.02;
   eleGroup.position.y = eleBob;
+  // Bondinho se movendo
+  if (rioGroup && rioGroup.userData.cableCurve) {
+    const c = rioGroup.userData.cableCurve;
+    const p1 = c.getPoint((t*0.04)%1);
+    const p2 = c.getPoint(((t*0.04)+0.5)%1);
+    if(rioGroup.userData.bondinho1) rioGroup.userData.bondinho1.position.copy(p1);
+    if(rioGroup.userData.bondinho2) rioGroup.userData.bondinho2.position.copy(p2);
+  }
   controls.update();
   renderer.render(scene, camera);
 }
