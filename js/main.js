@@ -438,7 +438,6 @@ paoDeAcucar.scale.set(1, 1.5, 1);
 paoDeAcucar.position.set(14, 2.2, -46);
 world.add(paoDeAcucar);
 
-
 /* ============================================================
    BONECO MINECRAFT - SKIN TROCÁVEL - VOCÊ FAZ A SKIN
    ============================================================ */
@@ -531,6 +530,46 @@ blobShadow.rotation.x = -Math.PI/2;
 blobShadow.position.set(0,0.02,4);
 world.add(blobShadow);
 
+/* ============================================================
+   SUPER PODER - EFEITO DE FLORES / PÉTALAS
+   ============================================================ */
+const flowerPowerGroup = new THREE.Group();
+world.add(flowerPowerGroup);
+
+function spawnFlowerPower(origin, direction){
+  // Cria 25 pétalas voando
+  for(let i=0;i<25;i++){
+    const petalMat = new THREE.MeshStandardMaterial({color: i%3===0 ? '#ff7eb0' : (i%3===1 ? '#E8C468' : '#2e7d4f'), side:THREE.DoubleSide});
+    const petal = new THREE.Mesh(new THREE.PlaneGeometry(0.12,0.08), petalMat);
+    petal.position.copy(origin).add(new THREE.Vector3((Math.random()-0.5)*0.5, Math.random()*0.5, (Math.random()-0.5)*0.5));
+    petal.lookAt(origin.clone().add(direction));
+    petal.userData.vel = direction.clone().multiplyScalar(2.5 + Math.random()*2.5).add(new THREE.Vector3((Math.random()-0.5)*1.5, Math.random()*1.5, (Math.random()-0.5)*1.5));
+    petal.userData.life = 1.0;
+    petal.userData.spin = (Math.random()-0.5)*10;
+    flowerPowerGroup.add(petal);
+  }
+  // Luz rápida
+  const flash = new THREE.PointLight('#ff7eb0', 8, 6);
+  flash.position.copy(origin);
+  world.add(flash);
+  setTimeout(()=>{ world.remove(flash); }, 300);
+}
+
+function updateFlowerPower(dt){
+  for(let i=flowerPowerGroup.children.length-1;i>=0;i--){
+    const p=flowerPowerGroup.children[i];
+    p.position.add(p.userData.vel.clone().multiplyScalar(dt));
+    p.userData.vel.y -= 1.5*dt; // gravidade
+    p.rotation.z += p.userData.spin*dt;
+    p.userData.life -= dt*0.9;
+    p.material.opacity = p.userData.life;
+    p.material.transparent=true;
+    if(p.userData.life<=0) flowerPowerGroup.remove(p);
+  }
+}
+
+
+
 const player = {
   pos: new THREE.Vector3(0,0,4),
   costume: 'tropical',
@@ -545,7 +584,7 @@ const player = {
 function setPlayerAction(kind, duration){
   const mesh=player.currentMesh; if(!mesh) return;
   player.locked=true;
-  if(kind==='attack'){ if(mesh.userData.leftArm) mesh.userData.leftArm.rotation.x=-1.2; if(mesh.userData.rightArm) mesh.userData.rightArm.rotation.x=-1.2; }
+  if(kind==='attack'){ if(mesh.userData.leftArm) mesh.userData.leftArm.rotation.x=-1.2; if(mesh.userData.rightArm) mesh.userData.rightArm.rotation.x=-1.2; const origin = playerMesh.position.clone().add(new THREE.Vector3(0,1.2,0)); const dir = player.moveDir.length()>0.1 ? player.moveDir.clone() : new THREE.Vector3(0,0,-1); spawnFlowerPower(origin, dir); }
   else if(kind==='shock'){ playerMesh.scale.y=0.7; playerMesh.position.y=-0.15; }
   else if(kind==='celebrate'){ playerMesh.position.y=0.4; if(mesh.userData.leftArm) mesh.userData.leftArm.rotation.z=-2.0; if(mesh.userData.rightArm) mesh.userData.rightArm.rotation.z=2.0; }
   clearTimeout(setPlayerAction._t);
