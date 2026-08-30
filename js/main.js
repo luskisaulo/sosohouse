@@ -81,12 +81,12 @@ function canvasTex(draw, w = 256, h = 256, repeat = [1, 1]) {
 const woodTex = canvasTex((ctx, w, h) => {
   ctx.fillStyle = '#8a5a3c'; ctx.fillRect(0, 0, w, h);
   for (let i = 0; i < 9; i++) {
-    ctx.fillStyle = i % 2? '#7c4f34' : '#95643f';
+    ctx.fillStyle = i % 2 ? '#7c4f34' : '#95643f';
     ctx.fillRect(0, i * (h / 9), w, h / 9 - 2);
   }
   ctx.globalAlpha = 0.12;
   for (let i = 0; i < 400; i++) {
-    ctx.fillStyle = Math.random() > 0.5? '#000' : '#fff';
+    ctx.fillStyle = Math.random() > 0.5 ? '#000' : '#fff';
     ctx.fillRect(Math.random() * w, Math.random() * h, 20, 1);
   }
 }, 256, 256, [6, 10]);
@@ -94,7 +94,7 @@ const woodTex = canvasTex((ctx, w, h) => {
 const deckTex = canvasTex((ctx, w, h) => {
   ctx.fillStyle = '#6b4530'; ctx.fillRect(0, 0, w, h);
   for (let i = 0; i < 7; i++) {
-    ctx.fillStyle = i % 2? '#5f3c29' : '#7a4f37';
+    ctx.fillStyle = i % 2 ? '#5f3c29' : '#7a4f37';
     ctx.fillRect(0, i * (h / 7), w, h / 7 - 3);
   }
 }, 256, 256, [8, 14]);
@@ -206,7 +206,7 @@ function pottedPlant(x, z, scale = 1) {
   cyl(0.32 * scale, 0.26 * scale, 0.5 * scale, MAT.terracota, x, 0.25 * scale, z);
   const g = new THREE.Group();
   for (let i = 0; i < 6; i++) {
-    const leaf = new THREE.Mesh(new THREE.ConeGeometry(0.14 * scale, 0.9 * scale, 5), i % 2? MAT.leaf : MAT.leafDark);
+    const leaf = new THREE.Mesh(new THREE.ConeGeometry(0.14 * scale, 0.9 * scale, 5), i % 2 ? MAT.leaf : MAT.leafDark);
     leaf.position.set((Math.random() - 0.5) * 0.3 * scale, 0.75 * scale, (Math.random() - 0.5) * 0.3 * scale);
     leaf.rotation.z = (Math.random() - 0.5) * 0.6;
     leaf.castShadow = true;
@@ -218,7 +218,7 @@ function pottedPlant(x, z, scale = 1) {
 [[-5, 10], [5, 10], [-5, 17], [5, 17], [-3, 18.3], [3, 18.3]].forEach(([x, z]) => pottedPlant(x, z, 1 + Math.random() * 0.4));
 for (let z = 9; z < 19; z += 1.6) {
   [ZONE.patio.x0, ZONE.patio.x1].forEach((x) => {
-    sph(0.28 + Math.random() * 0.2, MAT.magenta, x + (x < 0? 0.3 : -0.3), 1.6 + Math.random() * 1.2, z);
+    sph(0.28 + Math.random() * 0.2, MAT.magenta, x + (x < 0 ? 0.3 : -0.3), 1.6 + Math.random() * 1.2, z);
   });
 }
 
@@ -237,7 +237,7 @@ box(0.22, 0.6, 1.0, MAT.mostarda, -2.35, 0.65, 6.5);
 box(3.4, 0.03, 2.2, new THREE.MeshStandardMaterial({ color: '#a8433a', roughness: 0.9 }), -2, 0.02, 4.6);
 box(1.8, 2.2, 0.4, MAT.wood, 5.4, 1.1, 6.8);
 for (let i = 0; i < 4; i++) box(1.6, 0.06, 0.36, MAT.terracota, 5.4, 0.35 + i * 0.55, 6.8);
-for (let i = 0; i < 10; i++) box(0.14, 0.4, 0.28, i % 3 === 0? MAT.turquesa : (i % 3 === 1? MAT.magenta : MAT.esmeralda), 4.75 + i * 0.15, 1.85, 6.78);
+for (let i = 0; i < 10; i++) box(0.14, 0.4, 0.28, i % 3 === 0 ? MAT.turquesa : (i % 3 === 1 ? MAT.magenta : MAT.esmeralda), 4.75 + i * 0.15, 1.85, 6.78);
 function easelLeg(x, z, rz) { const l = box(0.07, 1.5, 0.07, MAT.wood, x, 0.75, z); l.rotation.z = rz; return l; }
 easelLeg(0, 0, 0.18); easelLeg(-0.55, 0.35, -0.22); easelLeg(0.55, 0.35, -0.22);
 const canvasTexture = canvasTex((ctx, w, h) => {
@@ -261,7 +261,7 @@ for (let z = -9; z <= -2; z += 3.5) {
 }
 for (let z = -9; z < -1; z += 2.5) {
   [ZONE.sala.x0, ZONE.sala.x1].forEach((x) => {
-    const s = sph(0.1, new THREE.MeshStandardMaterial({ color: '#ffdca0', emissive: '#ffb852', emissiveIntensity: 1.4 }), x + (x < 0? 0.3 : -0.3), 2.1, z);
+    const s = sph(0.1, new THREE.MeshStandardMaterial({ color: '#ffdca0', emissive: '#ffb852', emissiveIntensity: 1.4 }), x + (x < 0 ? 0.3 : -0.3), 2.1, z);
     const pl = new THREE.PointLight('#ffb852', 4, 5);
     pl.position.copy(s.position);
     world.add(pl);
@@ -327,41 +327,53 @@ cyl(0.05, 0.05, 0.75, MAT.ferro, 0, 0.4, -19);
 });
 box(ZONE.sala.x1 - ZONE.sala.x0 - 3, 0.06, 0.5, MAT.dourado, 0, 0.02, ZONE.sala.z0 + 0.1);
 
+
 /* ============================================================
-   CENÁRIO CARIOCA ULTRA COMPLETO
+   NOVO: CENÁRIO CARIOCA ULTRA COMPLETO - RUA, BONDINHO, PÃO, SOL, PRAIA
    ============================================================ */
 const rioGroup = new THREE.Group();
 world.add(rioGroup);
+
+// Chão gigante mata atlântica
 const bigGround = new THREE.Mesh(new THREE.PlaneGeometry(500,500), new THREE.MeshStandardMaterial({color:'#1d4a2e', roughness:1}));
 bigGround.rotation.x=-Math.PI/2; bigGround.position.y=-0.35; bigGround.receiveShadow=true;
 rioGroup.add(bigGround);
-const RUA_Z_CENTRO = -78;
-const RUA_Z_METADE = 45;
+
+// Rua de Santa Teresa descendo - paralelepípedo bem visível
+// IMPORTANTE: a casa ocupa x:[-7.2,7.2] e z:[-23.5,19] (varanda é o cômodo mais "de fora", com z0=-23.5).
+// A rua/trilho/bondinho ficam TODOS além de z=-23.5 (visíveis a partir da varanda, sem cruzar dentro da casa).
+const RUA_Z_CENTRO = -78; // centro da rua, bem além da varanda
+const RUA_Z_METADE = 45;  // metade do comprimento da rua
 const streetMat = new THREE.MeshStandardMaterial({color:'#6a6a6a', roughness:0.95});
 const street = new THREE.Mesh(new THREE.PlaneGeometry(10, RUA_Z_METADE * 2), streetMat);
 street.rotation.x=-Math.PI/2; street.position.set(0,-0.28,RUA_Z_CENTRO); street.receiveShadow=true;
 rioGroup.add(street);
+// Trilhos do bondinho de Santa Teresa (2 trilhos)
 const railMat = new THREE.MeshStandardMaterial({color:'#2a2a2a', metalness:0.7, roughness:0.3});
 for(let side of [-1.4,1.4]){
   const rail = new THREE.Mesh(new THREE.BoxGeometry(0.22,0.12,RUA_Z_METADE * 2), railMat);
   rail.position.set(side,-0.22,RUA_Z_CENTRO); rioGroup.add(rail);
 }
+// Bondinho de Santa Teresa - TRAM que anda na rua (não é o do Pão de Açúcar)
 const tramGroup = new THREE.Group();
 const tramBase = new THREE.Mesh(new THREE.BoxGeometry(1.8,1.0,3.2), new THREE.MeshStandardMaterial({color:'#ffcc00'}));
 tramBase.position.y=0.6; tramGroup.add(tramBase);
 const tramRoof = new THREE.Mesh(new THREE.BoxGeometry(1.9,0.15,3.3), new THREE.MeshStandardMaterial({color:'#8a4a2a'}));
 tramRoof.position.y=1.2; tramGroup.add(tramRoof);
-for(let i=0;i<4;i++){ const wheel=new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.18,0.1,8), new THREE.MeshStandardMaterial({color:'#1a1a1a'})); wheel.rotation.z=Math.PI/2; wheel.position.set(i<2?-0.9:0.9,0.18, i%2==0? -1.0 : 1.0); tramGroup.add(wheel); }
+for(let i=0;i<4;i++){ const wheel=new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.18,0.1,8), new THREE.MeshStandardMaterial({color:'#1a1a1a'})); wheel.rotation.z=Math.PI/2; wheel.position.set(i<2?-0.9:0.9,0.18, i%2==0 ? -1.0 : 1.0); tramGroup.add(wheel); }
 tramGroup.position.set(0,0,RUA_Z_CENTRO);
 tramGroup.castShadow=true;
 rioGroup.add(tramGroup);
 rioGroup.userData.tramGroup=tramGroup;
 rioGroup.userData.tramZCentro = RUA_Z_CENTRO;
-rioGroup.userData.tramAmplitude = RUA_Z_METADE - 5;
+rioGroup.userData.tramAmplitude = RUA_Z_METADE - 5; // margem de segurança nas pontas dos trilhos
+
+// Pão de Açúcar - 2 morros icônicos bem detalhados
 const paoMat = new THREE.MeshStandardMaterial({color:'#4a5a6a', roughness:0.8});
 const paoBase = new THREE.Mesh(new THREE.CylinderGeometry(3.2,4.8,5,14), paoMat); paoBase.position.set(22,2.2,-58); paoBase.castShadow=true; rioGroup.add(paoBase);
 const paoTop = new THREE.Mesh(new THREE.SphereGeometry(3.4,20,16,0,Math.PI*2,0,Math.PI*0.6), paoMat); paoTop.position.set(22,6,-58); paoTop.scale.set(1,1.4,1); paoTop.castShadow=true; rioGroup.add(paoTop);
 const urca = new THREE.Mesh(new THREE.ConeGeometry(3.0,4.5,12), paoMat); urca.position.set(16,2,-54); urca.castShadow=true; rioGroup.add(urca);
+// Cabo do bondinho do Pão de Açúcar
 const cableMat = new THREE.MeshStandardMaterial({color:'#1a1a1a'});
 const cableCurve = new THREE.CatmullRomCurve3([ new THREE.Vector3(0,12,-23), new THREE.Vector3(8,20,-38), new THREE.Vector3(15,18,-52), new THREE.Vector3(22,10,-58) ]);
 const cableGeo = new THREE.TubeGeometry(cableCurve, 28, 0.03, 6, false);
@@ -370,19 +382,27 @@ const bondinhoGeo = new THREE.BoxGeometry(0.8,0.6,1.0);
 const bondinho1 = new THREE.Mesh(bondinhoGeo, new THREE.MeshStandardMaterial({color:'#ffcc00'})); bondinho1.name='bondinho1'; rioGroup.add(bondinho1);
 const bondinho2 = new THREE.Mesh(bondinhoGeo, new THREE.MeshStandardMaterial({color:'#e63946'})); bondinho2.name='bondinho2'; rioGroup.add(bondinho2);
 rioGroup.userData.cableCurve=cableCurve; rioGroup.userData.bondinho1=bondinho1; rioGroup.userData.bondinho2=bondinho2;
+
+// Corcovado + Cristo Redentor
 const greenHillMat = new THREE.MeshStandardMaterial({color:'#1e5a3a', roughness:0.9});
 const corcovado = new THREE.Mesh(new THREE.ConeGeometry(8,10,8), greenHillMat); corcovado.position.set(-24,3.5,-72); corcovado.castShadow=true; rioGroup.add(corcovado);
 const cristoBase = new THREE.Mesh(new THREE.BoxGeometry(0.4,1.5,0.4), new THREE.MeshStandardMaterial({color:'#e8e0d0'})); cristoBase.position.set(-24,10.5,-72); rioGroup.add(cristoBase);
 const cristoBraco = new THREE.Mesh(new THREE.BoxGeometry(2.0,0.25,0.25), new THREE.MeshStandardMaterial({color:'#e8e0d0'})); cristoBraco.position.set(-24,11.2,-72); rioGroup.add(cristoBraco);
+
+// Praia + Areia + Mar da Baía de Guanabara
 const sandMat = new THREE.MeshStandardMaterial({color:'#e8d5a8', roughness:1});
 const sand = new THREE.Mesh(new THREE.PlaneGeometry(120,20), sandMat); sand.rotation.x=-Math.PI/2; sand.position.set(10,-0.4,-68); rioGroup.add(sand);
 const waterMat = new THREE.MeshStandardMaterial({color:'#1a6a8a', roughness:0.1, metalness:0.2, transparent:true, opacity:0.85});
 const water = new THREE.Mesh(new THREE.PlaneGeometry(300,120), waterMat); water.rotation.x=-Math.PI/2; water.position.set(20,-0.45,-85); rioGroup.add(water);
+
+// Sol 3D bem visível + brilho
 const sunMesh = new THREE.Mesh(new THREE.SphereGeometry(3.0,20,16), new THREE.MeshBasicMaterial({color:'#ffaa33'}));
 sunMesh.position.set(-28,28,-50); rioGroup.add(sunMesh);
 const sunGlow = new THREE.Mesh(new THREE.SphereGeometry(5.0,16,12), new THREE.MeshBasicMaterial({color:'#ffcc66', transparent:true, opacity:0.25}));
 sunGlow.position.copy(sunMesh.position); rioGroup.add(sunGlow);
 const sunLight = new THREE.PointLight('#ffb852', 2, 80); sunLight.position.copy(sunMesh.position); rioGroup.add(sunLight);
+
+// Casinhas coloridas de Santa Teresa ao redor (mais)
 const houseColors = ['#E2A83B','#D6488C','#1B4D6B','#B85A3C','#1E6B4F','#f4ede0','#ff7eb0'];
 for(let i=0;i<28;i++){
   const col = houseColors[Math.floor(Math.random()*houseColors.length)];
@@ -394,6 +414,8 @@ for(let i=0;i<28;i++){
   const house=new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mat); house.position.set(x,h/2-0.3,z); house.castShadow=true; rioGroup.add(house);
   const roof=new THREE.Mesh(new THREE.ConeGeometry(w*0.7,0.6,4), new THREE.MeshStandardMaterial({color:'#8a4a3a'})); roof.position.set(x,h-0.05,z); roof.rotation.y=Math.PI/4; rioGroup.add(roof);
 }
+
+// Palmeiras tropicais
 function palm(x,z,s=1){
   const trunk=new THREE.Mesh(new THREE.CylinderGeometry(0.08*s,0.12*s,2.8*s,8), new THREE.MeshStandardMaterial({color:'#5a3a2a'}));
   trunk.position.set(x,1.4*s-0.3,z); trunk.castShadow=true; rioGroup.add(trunk);
@@ -406,6 +428,8 @@ for(let i=0;i<18;i++){
   const ang=Math.random()*Math.PI*2, rad=12+Math.random()*28;
   palm(Math.cos(ang)*rad, Math.sin(ang)*rad-8, 0.9+Math.random()*0.6);
 }
+
+// Guarda-sóis coloridos na areia (estilo praia carioca)
 const umbrellaColors = ['#e63946','#f4a261','#2e7d4f','#1B4D6B','#ffcc00'];
 function beachUmbrella(x,z){
   const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.035,1.6,6), new THREE.MeshStandardMaterial({color:'#e8e0d0'}));
@@ -415,6 +439,8 @@ function beachUmbrella(x,z){
   canopy.position.set(x,1.25,z); canopy.castShadow=true; rioGroup.add(canopy);
 }
 for(let i=0;i<9;i++) beachUmbrella(-20+i*7+(Math.random()-0.5)*2, -62+(Math.random()-0.5)*4);
+
+// Gaivotas simples sobrevoando o mar
 const seagulls = [];
 function seagull(x,y,z){
   const g=new THREE.Group();
@@ -430,180 +456,91 @@ seagull(0,14,-60); seagull(6,16,-66); seagull(-8,15,-56);
 rioGroup.userData.seagulls = seagulls;
 
 /* ============================================================
-   BONECO MINECRAFT - SKIN TROCÁVEL - CORRIGIDO UV MAPPING
+   PERSONAGEM (SOFIA) - SPRITE 2D SEMPRE DE FRENTE PRA CÂMERA
+   ------------------------------------------------------------
+   Em vez de um boneco 3D com cubos, a Sofia agora é um "cartão"
+   2D (billboard) com a ilustração dela de verdade — ele gira
+   sozinho pra sempre ficar de frente pra câmera (técnica clássica
+   de jogos 2.5D, tipo Paper Mario), então nunca aparece torto ou
+   esticado, não importa o ângulo que você gire a câmera. Ele troca
+   de imagem conforme a ação (parada / andando / atacando / etc.)
+   e espelha horizontalmente pro lado certo conforme ela anda.
+
+   ARQUIVOS (assets/sprites/character/<figurino>/<estado>.png):
+     tropical/idle.png, walk1.png, walk2.png, attack.png, shock.png
+     princess/idle.png, walk1.png, walk2.png, shock.png, celebrate.png
+
+   Cada imagem deve ser um PNG com fundo transparente, já recortado
+   rente ao desenho (sem sobra de espaço em branco/transparente ao
+   redor) — isso evita a personagem "pular" de tamanho ao trocar de
+   frame. Se um arquivo não existir, o jogo não quebra: só mantém o
+   último frame carregado com sucesso naquele estado.
    ============================================================ */
-
-// FIX PRINCIPAL: Minecraft skin 64x64 tem layout específico. Cada cubo tem 6 faces com coordenadas diferentes.
-// Antes você mapeava a textura inteira em cada lado -> ficava cagado.
-// Agora aplicamos UV correto: frente (u,v,w,h) / costas (u+w+d) / direita (u-d) / esquerda (u+w) / cima (u,v-d) / baixo (u+w,v-d)
-
-function applyBoxUVs(geometry, frontU, frontV, w, h, d){
-  const uv = geometry.attributes.uv;
-  function rect(u,v,rw,rh){
-    const u0 = u/64, u1 = (u+rw)/64;
-    const v0 = 1 - (v+rh)/64;
-    const v1 = 1 - v/64;
-    return {u0,u1,v0,v1};
-  }
-  const front = rect(frontU, frontV, w, h);
-  const back = rect(frontU + w + d, frontV, w, h);
-  const right = rect(frontU - d, frontV, d, h);
-  const left = rect(frontU + w, frontV, d, h);
-  const top = rect(frontU, frontV - d, w, d);
-  const bottom= rect(frontU + w, frontV - d, w, d);
-  // Three BoxGeometry order: +X (left), -X (right), +Y (top), -Y (bottom), +Z (front), -Z (back)
-  const faces = [left, right, top, bottom, front, back];
-  for(let i=0;i<6;i++){
-    const r = faces[i];
-    const o = i*4;
-    uv.setXY(o, r.u0, r.v0);
-    uv.setXY(o+1, r.u1, r.v0);
-    uv.setXY(o+2, r.u1, r.v1);
-    uv.setXY(o+3, r.u0, r.v1);
-  }
-  uv.needsUpdate = true;
+const CHARACTER_SPRITE_BASE = 'assets/sprites/character/';
+const CHARACTER_TARGET_HEIGHT = 1.7; // altura em unidades do mundo (mesma escala do boneco antigo)
+const spriteTextureLoader = new THREE.TextureLoader();
+const spriteCache = {}; // 'costume/estado' -> { texture, aspect, ready, pending[] }
+function loadCharacterFrame(costume, state) {
+  const key = costume + '/' + state;
+  if (spriteCache[key]) return spriteCache[key];
+  const entry = { texture: null, aspect: 1, ready: false, pending: [] };
+  spriteCache[key] = entry;
+  spriteTextureLoader.load(
+    CHARACTER_SPRITE_BASE + key + '.png',
+    (tex) => {
+      tex.colorSpace = THREE.SRGBColorSpace;
+      entry.texture = tex;
+      entry.aspect = tex.image.width / tex.image.height;
+      entry.ready = true;
+      entry.pending.forEach((fn) => fn());
+      entry.pending.length = 0;
+    },
+    undefined,
+    () => { console.warn(`[sprites] não encontrei ${CHARACTER_SPRITE_BASE}${key}.png`); }
+  );
+  return entry;
 }
-
-function createSkinnedBox(wW,hW,dW, wPx,hPx,dPx, frontU, frontV, material){
-  const geo = new THREE.BoxGeometry(wW,hW,dW);
-  applyBoxUVs(geo, frontU, frontV, wPx, hPx, dPx);
-  const m = new THREE.Mesh(geo, material);
-  m.castShadow = true; m.receiveShadow = true;
-  return m;
+function applyFrameToSprite(group, entry) {
+  const sprite = group.userData.sprite;
+  sprite.material.map = entry.texture;
+  sprite.material.needsUpdate = true;
+  const h = CHARACTER_TARGET_HEIGHT;
+  const w = h * entry.aspect;
+  sprite.scale.set(w * group.userData.facing, h, 1);
 }
-
-function createMinecraftSkin(type){
-  const c=document.createElement('canvas'); c.width=64; c.height=64;
-  const ctx=c.getContext('2d');
-  ctx.imageSmoothingEnabled=false;
-  ctx.clearRect(0,0,64,64);
-  const fill=(u,v,w,h,col)=>{ctx.fillStyle=col; ctx.fillRect(u,v,w,h);};
-
-  if(type==='sofia_tropical'){
-    const skin='#f8c8a0', hair='#7a3e26', blonde='#e9c46a', coral='#ff7f6e', denim='#6a8fb8', palm='#2a7a4a';
-    // HEAD base 8,8
-    fill(8,8,8,8,skin); fill(8,0,8,8,hair); fill(16,0,8,8,hair); fill(0,8,8,8,hair); fill(16,8,8,8,hair); fill(24,8,8,8,hair);
-    fill(0,14,8,2,blonde); fill(16,14,8,2,blonde); fill(24,14,8,2,blonde);
-    fill(9,10,2,2,'#3b1f0f'); fill(13,10,2,2,'#3b1f0f'); fill(10,11,1,1,'#fff'); fill(14,11,1,1,'#fff');
-    // HEAD OVERLAY - coroa de flores 40,8
-    fill(40,8,8,8,'rgba(0,0,0,0)'); fill(32,8,8,8,hair); fill(48,8,8,8,hair); fill(56,8,8,8,hair);
-    fill(40,0,8,8,'rgba(0,0,0,0)');
-    fill(40,8,8,2,hair);
-    fill(40,8,2,2,'#fff'); fill(42,8,2,2,'#ffeb3b'); fill(44,8,2,2,'#ff8ab0'); fill(46,8,2,2,'#fff');
-    // BODY 20,20 coral crop-top
-    fill(20,16,8,4,skin); fill(28,16,8,4,skin); fill(16,20,4,12,skin); fill(28,20,4,12,skin);
-    fill(20,20,8,12,coral); fill(32,20,8,12,coral);
-    fill(21,22,1,2,palm); fill(25,22,1,2,palm); fill(22,26,1,2,palm); fill(26,26,1,2,palm);
-    fill(23,30,2,2,'#d85a4a');
-    // ARMS skin + detalhe coqueiro
-    fill(44,16,4,4,skin); fill(48,16,4,4,skin); fill(40,20,4,12,skin); fill(44,20,4,12,skin); fill(44,20,4,4,coral); fill(48,20,4,12,skin); fill(52,20,4,12,skin);
-    fill(36,48,4,4,skin); fill(40,48,4,4,skin); fill(32,52,4,12,skin); fill(36,52,4,12,skin); fill(36,52,4,4,coral); fill(40,52,4,12,skin); fill(44,52,4,12,skin);
-    // LEGS denim shorts
-    fill(4,16,4,4,skin); fill(8,16,4,4,skin); fill(0,20,4,12,denim); fill(4,20,4,12,denim); fill(8,20,4,12,denim); fill(12,20,4,12,denim);
-    fill(20,48,4,4,skin); fill(24,48,4,4,skin); fill(16,52,4,12,denim); fill(20,52,4,12,denim); fill(24,52,4,12,denim); fill(28,52,4,12,denim);
-    fill(0,30,4,2,'#b8cfe8'); fill(16,62,8,2,'#b8cfe8');
-  } else if(type==='sofia_princess'){
-    const skin='#f8c8a0', hair='#7a3e26', blonde='#e9c46a', white='#fffaf5', gold='#E8C468';
-    fill(8,8,8,8,skin); fill(8,0,8,8,hair); fill(16,0,8,8,hair); fill(0,8,8,8,hair); fill(16,8,8,8,hair); fill(24,8,8,8,hair);
-    fill(0,14,8,2,blonde); fill(16,14,8,2,blonde); fill(24,14,8,2,blonde);
-    // overlay crown gold
-    fill(40,0,8,2,gold); fill(40,8,8,2,gold);
-    fill(20,20,8,12,white); fill(32,20,8,12,white); fill(20,16,8,4,skin); fill(28,16,8,4,skin); fill(16,20,4,12,skin); fill(28,20,4,12,skin);
-    fill(20,30,8,2,gold); fill(32,30,8,2,gold);
-    fill(44,16,4,4,skin); fill(48,16,4,4,skin); fill(40,20,4,12,skin); fill(44,20,4,12,white); fill(48,20,4,12,skin); fill(52,20,4,12,white);
-    fill(36,48,4,4,skin); fill(40,48,4,4,skin); fill(32,52,4,12,skin); fill(36,52,4,12,white); fill(40,52,4,12,skin); fill(44,52,4,12,white);
-    fill(4,16,4,4,skin); fill(8,16,4,4,skin); fill(0,20,4,12,white); fill(4,20,4,12,white); fill(8,20,4,12,white); fill(12,20,4,12,white);
-    fill(0,30,4,2,gold); fill(4,30,4,2,gold);
-    fill(20,48,4,4,skin); fill(24,48,4,4,skin); fill(16,52,4,12,white); fill(20,52,4,12,white); fill(24,52,4,12,white); fill(28,52,4,12,white);
-    fill(16,62,4,2,gold); fill(20,62,4,2,gold);
-  } else if(type==='lucas'){
-    const skin='#d8a07a', hair='#3a2818', shirt='#f4f0e6', pants='#2b3550';
-    fill(8,8,8,8,skin); fill(8,0,8,8,hair); fill(0,8,8,8,hair); fill(16,8,8,8,hair); fill(24,8,8,8,hair); fill(16,0,8,8,hair);
-    fill(20,20,8,12,shirt); fill(32,20,8,12,shirt); fill(16,20,4,12,shirt); fill(28,20,4,12,shirt); fill(20,16,8,4,shirt); fill(28,16,8,4,shirt);
-    fill(44,16,4,4,skin); fill(40,20,4,12,shirt); fill(44,20,4,12,skin); fill(36,48,4,4,skin); fill(32,52,4,12,shirt);
-    fill(4,16,4,4,pants); fill(0,20,4,12,pants); fill(4,20,4,12,pants); fill(20,48,4,4,pants); fill(20,52,4,12,pants);
-  } else {
-    const skin='#d8a07a', hair='#3a2818', shirt='#1B4D6B', pants='#2b3550';
-    fill(8,8,8,8,skin); fill(8,0,8,8,hair); fill(0,8,8,8,hair); fill(16,8,8,8,hair); fill(24,8,8,8,hair); fill(16,0,8,8,hair);
-    fill(20,20,8,12,shirt); fill(32,20,8,12,shirt); fill(16,20,4,12,shirt); fill(28,20,4,12,shirt); fill(20,16,8,4,shirt); fill(28,16,8,4,shirt);
-    fill(44,16,4,4,skin); fill(40,20,4,12,shirt); fill(44,20,4,12,skin); fill(36,48,4,4,skin); fill(32,52,4,12,shirt);
-    fill(4,16,4,4,pants); fill(0,20,4,12,pants); fill(4,20,4,12,pants); fill(20,48,4,4,pants); fill(20,52,4,12,pants);
-  }
-  const tex=new THREE.CanvasTexture(c);
-  tex.magFilter=THREE.NearestFilter; tex.minFilter=THREE.NearestFilter;
-  tex.colorSpace=THREE.SRGBColorSpace;
-  return tex;
+// Troca o frame exibido (ex.: 'idle', 'walk1', 'attack'...) sem mexer no lado que ela está olhando
+function setSpriteFrame(group, state) {
+  if (group.userData.currentState === state) return;
+  group.userData.currentState = state;
+  const entry = loadCharacterFrame(group.userData.costume, state);
+  if (entry.ready) applyFrameToSprite(group, entry);
+  else entry.pending.push(() => { if (group.userData.currentState === state) applyFrameToSprite(group, entry); });
 }
-
-function createMinecraftCharacter(skinTex){
-  const group=new THREE.Group();
-  const mat=new THREE.MeshStandardMaterial({map:skinTex, transparent:true, alphaTest:0.3});
-  mat.map.magFilter=THREE.NearestFilter; mat.map.minFilter=THREE.NearestFilter;
-  group.userData.material = mat;
-
-  // Cabeça base 8x8x8 frente 8,8
-  const head = createSkinnedBox(0.4,0.4,0.4, 8,8,8, 8,8, mat);
-  head.position.y=1.5;
-  group.add(head); group.userData.head=head;
-
-  // Segunda camada chapéu / coroa de flores frente 40,8 - um pouco maior pra não dar z-fighting
-  const hat = createSkinnedBox(0.44,0.44,0.44, 8,8,8, 40,8, mat);
-  hat.position.y=1.5;
-  group.add(hat);
-
-  // Corpo 8x12x4 frente 20,20
-  const body = createSkinnedBox(0.4,0.6,0.2, 8,12,4, 20,20, mat);
-  body.position.y=1.0;
-  group.add(body); group.userData.body=body;
-
-  // Braço direito (nosso esquerdo) frente 44,20
-  const leftArm = createSkinnedBox(0.2,0.6,0.2, 4,12,4, 44,20, mat);
-  leftArm.position.set(-0.3,1.0,0);
-  group.add(leftArm); group.userData.leftArm=leftArm;
-
-  // Braço esquerdo (novo formato) frente 36,52
-  const rightArm = createSkinnedBox(0.2,0.6,0.2, 4,12,4, 36,52, mat);
-  rightArm.position.set(0.3,1.0,0);
-  group.add(rightArm); group.userData.rightArm=rightArm;
-
-  // Perna direita frente 4,20
-  const leftLeg = createSkinnedBox(0.2,0.6,0.2, 4,12,4, 4,20, mat);
-  leftLeg.position.set(-0.1,0.4,0);
-  group.add(leftLeg); group.userData.leftLeg=leftLeg;
-
-  // Perna esquerda frente 20,52
-  const rightLeg = createSkinnedBox(0.2,0.6,0.2, 4,12,4, 20,52, mat);
-  rightLeg.position.set(0.1,0.4,0);
-  group.add(rightLeg); group.userData.rightLeg=rightLeg;
-
+// Espelha o sprite pro lado certo (1 = olhando/andando pra direita, -1 = pra esquerda). As artes originais olham pra direita.
+function setSpriteFacing(group, facing) {
+  if (group.userData.facing === facing) return;
+  group.userData.facing = facing;
+  const sprite = group.userData.sprite;
+  sprite.scale.x = Math.abs(sprite.scale.x) * facing;
+}
+function createSpriteCharacter(costume, states) {
+  const group = new THREE.Group();
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ transparent: true }));
+  sprite.center.set(0.5, 0); // ancora no chão (pé), não no meio do sprite
+  group.add(sprite);
+  group.userData.sprite = sprite;
+  group.userData.costume = costume;
+  group.userData.currentState = null;
+  group.userData.facing = 1;
+  states.forEach((s) => loadCharacterFrame(costume, s)); // pré-carrega todos os frames desse figurino
   return group;
 }
 
-const SPRITE_BASE = 'assets/sprites/skins/';
-const textureLoader = new THREE.TextureLoader();
-function applyRealSkinIfAvailable(characterGroup, fileName) {
-  textureLoader.load(
-    SPRITE_BASE + fileName,
-    (tex) => {
-      tex.magFilter = THREE.NearestFilter; tex.minFilter = THREE.NearestFilter; tex.colorSpace = THREE.SRGBColorSpace;
-      const mat = characterGroup.userData.material;
-      if (mat) { mat.map = tex; mat.needsUpdate = true; }
-    },
-    undefined,
-    () => {}
-  );
-}
-
-const skinSofiaTropical = createMinecraftSkin('sofia_tropical');
-const skinSofiaPrincess = createMinecraftSkin('sofia_princess');
-const skinLucas = createMinecraftSkin('lucas');
-const skinLucas2 = createMinecraftSkin('lucas_formal');
-
-const sofiaTropical = createMinecraftCharacter(skinSofiaTropical);
-const sofiaPrincess = createMinecraftCharacter(skinSofiaPrincess);
-sofiaPrincess.visible=false;
-applyRealSkinIfAvailable(sofiaTropical, 'sofia_tropical.png');
-applyRealSkinIfAvailable(sofiaPrincess, 'sofia_princess.png');
+const sofiaTropical = createSpriteCharacter('tropical', ['idle', 'walk1', 'walk2', 'attack', 'shock']);
+const sofiaPrincess = createSpriteCharacter('princess', ['idle', 'walk1', 'walk2', 'shock', 'celebrate']);
+setSpriteFrame(sofiaTropical, 'idle');
+setSpriteFrame(sofiaPrincess, 'idle');
+sofiaPrincess.visible = false;
 
 const playerMesh = new THREE.Group();
 playerMesh.add(sofiaTropical);
@@ -623,8 +560,9 @@ const flowerPowerGroup = new THREE.Group();
 world.add(flowerPowerGroup);
 
 function spawnFlowerPower(origin, direction){
+  // Cria 25 pétalas voando
   for(let i=0;i<25;i++){
-    const petalMat = new THREE.MeshStandardMaterial({color: i%3===0? '#ff7eb0' : (i%3===1? '#E8C468' : '#2e7d4f'), side:THREE.DoubleSide});
+    const petalMat = new THREE.MeshStandardMaterial({color: i%3===0 ? '#ff7eb0' : (i%3===1 ? '#E8C468' : '#2e7d4f'), side:THREE.DoubleSide});
     const petal = new THREE.Mesh(new THREE.PlaneGeometry(0.12,0.08), petalMat);
     petal.position.copy(origin).add(new THREE.Vector3((Math.random()-0.5)*0.5, Math.random()*0.5, (Math.random()-0.5)*0.5));
     petal.lookAt(origin.clone().add(direction));
@@ -633,6 +571,7 @@ function spawnFlowerPower(origin, direction){
     petal.userData.spin = (Math.random()-0.5)*10;
     flowerPowerGroup.add(petal);
   }
+  // Luz rápida
   const flash = new THREE.PointLight('#ff7eb0', 8, 6);
   flash.position.copy(origin);
   world.add(flash);
@@ -643,7 +582,7 @@ function updateFlowerPower(dt){
   for(let i=flowerPowerGroup.children.length-1;i>=0;i--){
     const p=flowerPowerGroup.children[i];
     p.position.add(p.userData.vel.clone().multiplyScalar(dt));
-    p.userData.vel.y -= 1.5*dt;
+    p.userData.vel.y -= 1.5*dt; // gravidade
     p.rotation.z += p.userData.spin*dt;
     p.userData.life -= dt*0.9;
     p.material.opacity = p.userData.life;
@@ -652,6 +591,9 @@ function updateFlowerPower(dt){
   }
 }
 
+
+
+// Campo de estrelas usado na transição pro entardecer (tweenSky) - some de dia, aparece ao anoitecer
 const starGeo = new THREE.BufferGeometry();
 const starCount = 260;
 const starPositions = new Float32Array(starCount * 3);
@@ -679,6 +621,8 @@ const player = {
   moveDir: new THREE.Vector3()
 };
 
+// Poder de flores: usável a qualquer momento pelo botão dedicado (mobile) ou tecla F (PC).
+// Se o jogador estiver perto da vinha ainda não limpa, também libera a passagem.
 let flowerPowerCooldown = 0;
 function triggerFlowerBurst() {
   if (player.locked || dialogueActive || flowerPowerCooldown > 0) return;
@@ -699,15 +643,31 @@ function triggerFlowerBurst() {
 function setPlayerAction(kind, duration){
   const mesh=player.currentMesh; if(!mesh) return;
   player.locked=true;
-  if(kind==='attack'){ if(mesh.userData.leftArm) mesh.userData.leftArm.rotation.x=-1.2; if(mesh.userData.rightArm) mesh.userData.rightArm.rotation.x=-1.2; const origin = playerMesh.position.clone().add(new THREE.Vector3(0,1.2,0)); const dir = player.moveDir.length()>0.1? player.moveDir.clone() : new THREE.Vector3(0,0,-1); spawnFlowerPower(origin, dir); }
-  else if(kind==='shock'){ playerMesh.scale.y=0.7; playerMesh.position.y=-0.15; }
-  else if(kind==='celebrate'){ playerMesh.position.y=0.4; if(mesh.userData.leftArm) mesh.userData.leftArm.rotation.z=-2.0; if(mesh.userData.rightArm) mesh.userData.rightArm.rotation.z=2.0; }
+  if(kind==='attack'){
+    setSpriteFrame(mesh, 'attack');
+    const origin = playerMesh.position.clone().add(new THREE.Vector3(0,1.2,0));
+    const dir = player.moveDir.length()>0.1 ? player.moveDir.clone() : new THREE.Vector3(0,0,-1);
+    spawnFlowerPower(origin, dir);
+  } else if(kind==='shock'){
+    setSpriteFrame(mesh, 'shock');
+    playerMesh.scale.y=0.9; playerMesh.position.y=-0.08; // pequeno "encolhida de susto"
+  } else if(kind==='celebrate'){
+    setSpriteFrame(mesh, 'celebrate');
+    playerMesh.position.y=0.15;
+  }
   clearTimeout(setPlayerAction._t);
-  setPlayerAction._t=setTimeout(()=>{ player.locked=false; playerMesh.position.y=0; playerMesh.scale.y=1; if(mesh.userData.leftArm){mesh.userData.leftArm.rotation.x=0; mesh.userData.leftArm.rotation.z=0;} if(mesh.userData.rightArm){mesh.userData.rightArm.rotation.x=0; mesh.userData.rightArm.rotation.z=0;} },duration);
+  setPlayerAction._t=setTimeout(()=>{
+    player.locked=false;
+    playerMesh.position.y=0; playerMesh.scale.y=1;
+    setSpriteFrame(mesh, 'idle'); // updatePlayer troca pra walk1/walk2 no próximo frame se ela estiver andando
+  },duration);
 }
 
 /* ============================================================
-   NPC "ELE"
+   NPC "ELE" - SEU BONECO 3D MINECRAFT TAMBÉM COM SKIN
+   ============================================================ */
+/* ============================================================
+   NPC "ELE" - SEU BONECO 3D (MANTIDO E MELHORADO)
    ============================================================ */
 const eleGroup = new THREE.Group();
 const skinMat = new THREE.MeshStandardMaterial({ color: '#c98a5e', roughness: 0.7 });
@@ -759,7 +719,7 @@ box(1.0, 0.5, 0.65, MAT.wood, 5.3, 0.25, 3.4);
 interactables.push({
   pos: new THREE.Vector3(5.3, 0, 3.4), radius: 1.6, id: 'vitrola',
   label: 'Tocar a vitrola', repeatable: true,
-  onInteract: () => { toggleAmbientMusic(); toast(audioState.playing? '🎵 Uma melodia familiar enche a sala de calor...' : 'A música parou.'); },
+  onInteract: () => { toggleAmbientMusic(); toast(audioState.playing ? '🎵 Uma melodia familiar enche a sala de calor...' : 'A música parou.'); },
 });
 interactables.push({
   pos: new THREE.Vector3(0, 0, 0), radius: 1.6, id: 'quadro',
@@ -788,7 +748,7 @@ interactables.push({
 
 const vineGroup = new THREE.Group();
 for (let i = 0; i < 26; i++) {
-  const seg = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 1.4, 6), i % 2? MAT.leaf : MAT.leafDark);
+  const seg = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 1.4, 6), i % 2 ? MAT.leaf : MAT.leafDark);
   seg.position.set((Math.random() - 0.5) * 12.4, 0.7 + Math.random() * 1.6, -5.5 + (Math.random() - 0.5) * 0.4);
   seg.rotation.z = (Math.random() - 0.5) * 1.4;
   seg.rotation.y = Math.random() * Math.PI;
@@ -826,7 +786,7 @@ const hallLeftWall = ZONE.sala.x0 + 0.17, hallRightWall = ZONE.sala.x1 - 0.17;
   g.position.set(x, 1.55, z);
   g.rotation.y = ry;
   world.add(g);
-  memoryTriggers.push({ pos: new THREE.Vector3(x > 0? x - 2 : x + 2, 0, z), radius: 2.4, seen: false, art, text: CFG.memorias[i] });
+  memoryTriggers.push({ pos: new THREE.Vector3(x > 0 ? x - 2 : x + 2, 0, z), radius: 2.4, seen: false, art, text: CFG.memorias[i] });
 });
 
 const key2Mesh = new THREE.Group();
@@ -940,9 +900,9 @@ function nextLine(onDone) {
     return;
   }
   const line = dialogueQueue.shift();
-  const speakerLabel = line.falante === 'ele'? CFG.nomeEle : (line.falante === 'ela'? CFG.nomeEla : '');
+  const speakerLabel = line.falante === 'ele' ? CFG.nomeEle : (line.falante === 'ela' ? CFG.nomeEla : '');
   $('speakerName').textContent = speakerLabel;
-  $('speakerName').style.opacity = speakerLabel? 1 : 0;
+  $('speakerName').style.opacity = speakerLabel ? 1 : 0;
   const textEl = $('dialogueText');
   textEl.textContent = '';
   clearInterval(typeInterval);
@@ -989,7 +949,7 @@ $('giftCloseBtn').addEventListener('click', () => {
 });
 
 /* ============================================================
-   TRANSFORMATION CUTSCENE
+   TRANSFORMATION CUTSCENE - ATUALIZADO PRA 3D
    ============================================================ */
 function playTransformationCutscene() {
   state.transformed = true;
@@ -1065,7 +1025,7 @@ function checkMemories() {
 }
 
 /* ============================================================
-   INPUT
+   INPUT - INTACTO
    ============================================================ */
 const keysDown = {};
 window.addEventListener('keydown', (e) => {
@@ -1112,16 +1072,17 @@ $('actionBtn').addEventListener('click', () => tryInteract());
 let nearestInteractable = null;
 function tryInteract() {
   if (dialogueActive) { advanceDialogue(); return; }
-  if (nearestInteractable &&!player.locked) nearestInteractable.onInteract();
+  if (nearestInteractable && !player.locked) nearestInteractable.onInteract();
 }
 
 /* ============================================================
-   MOVEMENT / COLLISION
+   MOVEMENT / COLLISION - ATUALIZADO PRA 3D
    ============================================================ */
 const moveDir = new THREE.Vector3();
 const camForward = new THREE.Vector3();
 const camRight = new THREE.Vector3();
 const WORLD_UP = new THREE.Vector3(0, 1, 0);
+const WALK_FRAME_TIME = 0.18; // segundos entre a troca walk1 <-> walk2
 function computeInput() {
   let ix = 0, iy = 0;
   if (keysDown['w'] || keysDown['arrowup']) iy -= 1;
@@ -1142,7 +1103,8 @@ function collidesAt(x, z) {
 function updatePlayer(dt) {
   const { ix, iy } = computeInput();
   player.moving = false;
-  if (!player.locked && (ix!== 0 || iy!== 0)) {
+  if (!player.locked && (ix !== 0 || iy !== 0)) {
+    // Direção real da câmera (pra frente = pra "dentro da tela"), não o offset câmera->alvo (que apontava ao contrário e fazia andar pra trás)
     camera.getWorldDirection(camForward);
     camForward.y = 0;
     if (camForward.lengthSq() < 1e-6) camForward.set(0, 0, -1); else camForward.normalize();
@@ -1154,28 +1116,24 @@ function updatePlayer(dt) {
     if (!collidesAt(nx, player.pos.z)) player.pos.x = nx;
     if (!collidesAt(player.pos.x, nz)) player.pos.z = nz;
     player.moving = true;
+
+    // Sprite sempre olha pra câmera sozinho (billboard); só precisamos espelhar
+    // pro lado certo, com base em pra onde ela está indo na TELA (não no mundo).
+    const sideDot = moveDir.dot(camRight);
+    if (Math.abs(sideDot) > 0.15) setSpriteFacing(player.currentMesh, sideDot >= 0 ? 1 : -1);
   }
   playerMesh.position.set(player.pos.x, 0, player.pos.z);
-  if (player.moving && player.moveDir.length() > 0.1) {
-    const desiredY = Math.atan2(player.moveDir.x, player.moveDir.z);
-    let diff = desiredY - playerMesh.rotation.y;
-    while (diff > Math.PI) diff -= Math.PI*2;
-    while (diff < -Math.PI) diff += Math.PI*2;
-    playerMesh.rotation.y += diff * 0.18;
-  }
   blobShadow.position.set(player.pos.x, 0.02, player.pos.z);
 
-  if (player.moving &&!player.locked) {
-    player.animTimer += dt * 8;
-    const swing = Math.sin(player.animTimer) * 0.6;
-    const mesh = player.currentMesh;
-    if (mesh && mesh.userData.leftLeg) {
-      mesh.userData.leftLeg.rotation.x = swing;
-      mesh.userData.rightLeg.rotation.x = -swing;
-    }
-    if (mesh && mesh.userData.leftArm) {
-      mesh.userData.leftArm.rotation.x = -swing * 0.4;
-      mesh.userData.rightArm.rotation.x = swing * 0.4;
+  // Animação: troca entre os frames prontos (parada / passo 1 / passo 2) — sem precisar de esqueleto
+  if (!player.locked) {
+    if (player.moving) {
+      player.animTimer += dt;
+      const frame = Math.floor(player.animTimer / WALK_FRAME_TIME) % 2 === 0 ? 'walk1' : 'walk2';
+      setSpriteFrame(player.currentMesh, frame);
+    } else {
+      player.animTimer = 0;
+      setSpriteFrame(player.currentMesh, 'idle');
     }
   }
 
@@ -1189,7 +1147,7 @@ function updatePlayer(dt) {
   });
   nearestInteractable = best;
   const promptEl = $('interactPrompt');
-  if (best &&!player.locked) {
+  if (best && !player.locked) {
     $('interactLabel').textContent = best.label;
     promptEl.classList.add('show');
   } else {
@@ -1213,7 +1171,7 @@ function ensureAudio() {
   const Ctx = window.AudioContext || window.webkitAudioContext;
   audioState.ctx = new Ctx();
   audioState.master = audioState.ctx.createGain();
-  audioState.master.gain.value = audioState.muted? 0 : 0.5;
+  audioState.master.gain.value = audioState.muted ? 0 : 0.5;
   audioState.master.connect(audioState.ctx.destination);
 }
 function chime() {
@@ -1260,35 +1218,37 @@ function toggleAmbientMusic() {
 }
 $('soundToggle').addEventListener('click', () => {
   ensureAudio();
-  audioState.muted =!audioState.muted;
-  audioState.master.gain.value = audioState.muted? 0 : 0.5;
-  $('soundToggle').textContent = audioState.muted? '🔇' : '🔈';
+  audioState.muted = !audioState.muted;
+  audioState.master.gain.value = audioState.muted ? 0 : 0.5;
+  $('soundToggle').textContent = audioState.muted ? '🔇' : '🔈';
 });
 
 /* ============================================================
-   CONTROLES ADAPTATIVOS
+   CONTROLES ADAPTATIVOS - PC x CELULAR (Minecraft-style no touch)
    ============================================================ */
 (function setupAdaptiveControls() {
   const style = document.createElement('style');
   style.textContent = `
     #mcActionButtons { position: fixed; right: 18px; bottom: 22px; display: flex; flex-direction: column; gap: 14px; z-index: 40; }
-   .mc-btn { width: 62px; height: 62px; border-radius: 14px; border: 3px solid rgba(255,255,255,0.55);
+    .mc-btn { width: 62px; height: 62px; border-radius: 14px; border: 3px solid rgba(255,255,255,0.55);
       background: linear-gradient(180deg, rgba(60,50,45,0.55), rgba(20,16,14,0.65)); backdrop-filter: blur(2px);
       display: flex; align-items: center; justify-content: center; font-size: 26px; color: #fff;
       -webkit-tap-highlight-color: transparent; user-select: none; touch-action: manipulation;
       box-shadow: 0 3px 0 rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.25); }
-   .mc-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,0.35); background: rgba(0,0,0,0.55); }
-   .mc-btn--flower { border-color: #ff9ec7; }
+    .mc-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,0.35); background: rgba(0,0,0,0.55); }
+    .mc-btn--flower { border-color: #ff9ec7; }
     #pcHint { position: fixed; left: 18px; bottom: 18px; z-index: 40; font: 12px/1.4 system-ui, sans-serif;
       color: #fff; background: rgba(0,0,0,0.35); padding: 6px 10px; border-radius: 8px; letter-spacing: 0.2px; }
-    body:not(.is-touch) #mcActionButtons { display: none!important; }
-    body.is-touch #pcHint { display: none!important; }
+    body:not(.is-touch) #mcActionButtons { display: none !important; }
+    body.is-touch #pcHint { display: none !important; }
   `;
   document.head.appendChild(style);
 
   if (isTouch) {
+    // Some com qualquer texto/lembrete de tecla de PC que já exista na tela
     const legacyPrompt = $('interactPrompt');
     if (legacyPrompt) legacyPrompt.classList.add('mobile-mode');
+
     const wrap = document.createElement('div');
     wrap.id = 'mcActionButtons';
     wrap.innerHTML = `
@@ -1300,8 +1260,9 @@ $('soundToggle').addEventListener('click', () => {
     $('flowerBtn').addEventListener('click', () => triggerFlowerBurst());
     $('mcInteractBtn').addEventListener('touchstart', (e) => { e.preventDefault(); tryInteract(); }, { passive: false });
     $('mcInteractBtn').addEventListener('click', () => tryInteract());
+    // Se existir o botão antigo de interação, deixa ele visível também (compatibilidade), sem duplicar textos de tecla
     const oldActionBtn = $('actionBtn');
-    if (oldActionBtn) oldActionBtn.style.display = 'none';
+    if (oldActionBtn) oldActionBtn.style.display = 'none'; // substituído pelo mcInteractBtn
   } else {
     const hint = document.createElement('div');
     hint.id = 'pcHint';
@@ -1311,7 +1272,7 @@ $('soundToggle').addEventListener('click', () => {
 })();
 
 /* ============================================================
-   TITLE / LOADING FLOW
+   TITLE / LOADING FLOW - CORRIGIDO PRA NÃO FICAR CARREGANDO
    ============================================================ */
 const loadingManager = new THREE.LoadingManager();
 loadingManager.onProgress = (u, loaded, total) => { const el=$('loadbarFill'); if(el) el.style.width = (loaded / total * 100) + '%'; };
@@ -1319,9 +1280,10 @@ loadingManager.onLoad = () => {
   $('loading').classList.add('hidden');
   $('titleScreen').classList.remove('hidden');
 };
+// Fallback GARANTIDO - mesmo sem sprites carrega
 setTimeout(() => {
   const loadEl=$('loading'); const titleEl=$('titleScreen');
-  if (loadEl &&!loadEl.classList.contains('hidden')) {
+  if (loadEl && !loadEl.classList.contains('hidden')) {
     loadEl.classList.add('hidden');
     if(titleEl) titleEl.classList.remove('hidden');
   }
@@ -1336,13 +1298,13 @@ const howToBtnEl = $('howToBtn');
 if (howToBtnEl) {
   howToBtnEl.addEventListener('click', () => {
     toast(isTouch
-     ? '👆 Use o manete pra andar. Toque em ✋ para interagir e em 🌸 para a rajada de flores.'
-      : '⌨ Use WASD ou as setas pra andar. Pressione E (ou espaço) para interagir e F para a rajada de flores.');
+      ? '👆 Use o manete pra andar. Toque em ✋ para interagir e em 🌸 para a rajada de flores.'
+      : '⌨️ Use WASD ou as setas pra andar. Pressione E (ou espaço) para interagir e F para a rajada de flores.');
   });
 }
 
 /* ============================================================
-   MAIN LOOP
+   MAIN LOOP - COM BONDINHO ANIMADO
    ============================================================ */
 const clock = new THREE.Clock();
 function animate() {
@@ -1355,6 +1317,7 @@ function animate() {
   updateFlowerPower(dt);
   const eleBob = Math.sin(t * 1.3) * 0.02;
   eleGroup.position.y = eleBob;
+  // Anima bondinho Pão de Açúcar
   if(rioGroup && rioGroup.userData.cableCurve){
     const c=rioGroup.userData.cableCurve;
     const p1=c.getPoint((t*0.04)%1);
@@ -1362,6 +1325,7 @@ function animate() {
     if(rioGroup.userData.bondinho1) rioGroup.userData.bondinho1.position.copy(p1);
     if(rioGroup.userData.bondinho2) rioGroup.userData.bondinho2.position.copy(p2);
   }
+  // Anima as gaivotas sobrevoando o mar em círculos suaves
   if (rioGroup && rioGroup.userData.seagulls) {
     rioGroup.userData.seagulls.forEach((s) => {
       const ang = t * s.speed + s.phase;
@@ -1369,6 +1333,7 @@ function animate() {
       s.mesh.rotation.y = -ang - Math.PI / 2;
     });
   }
+  // Anima bondinho de Santa Teresa na rua (fica sempre além da varanda, nunca cruza a casa)
   if(rioGroup && rioGroup.userData.tramGroup){
     const tram=rioGroup.userData.tramGroup;
     tram.position.z = rioGroup.userData.tramZCentro - Math.sin(t*0.3) * rioGroup.userData.tramAmplitude;
