@@ -45,7 +45,11 @@ const MEMORY_IMAGE_URLS = ['', '', '']; // ex: ['./assets/images/memoria1.jpg', 
    ============================================================ */
 const CHARACTER_SPRITE_BASE = './assets/sprites/';
 const CHARACTER_HEIGHTS = { tropical: 1.7, princess: 1.7, ele: 1.62 };
-const spriteTextureLoader = new THREE.TextureLoader(loadingManager);
+// IMPORTANTE: este loader NÃO usa o loadingManager de propósito.
+// Sprites direcionais (_front/_back) são carregados sob demanda, durante o
+// jogo — se estivessem ligados ao loadingManager, cada carregamento novo
+// reativaria o "onLoad" dele e reabriria a tela de título no meio do jogo.
+const spriteTextureLoader = new THREE.TextureLoader();
 const spriteCache = {};
 
 // Carrega qualquer imagem (pintura, quadros de memória) com fallback pra
