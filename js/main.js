@@ -7,6 +7,11 @@ const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
 if (isTouch) document.body.classList.add('is-touch');
 
 /* ============================================================
+   LOADING MANAGER - precisa ser criado ANTES das sprites
+   ============================================================ */
+const loadingManager = new THREE.LoadingManager();
+
+/* ============================================================
    RENDERER / SCENE / CAMERA
    ============================================================ */
 const app = $('app');
@@ -81,12 +86,12 @@ function canvasTex(draw, w = 256, h = 256, repeat = [1, 1]) {
 const woodTex = canvasTex((ctx, w, h) => {
   ctx.fillStyle = '#8a5a3c'; ctx.fillRect(0, 0, w, h);
   for (let i = 0; i < 9; i++) {
-    ctx.fillStyle = i % 2 ? '#7c4f34' : '#95643f';
+    ctx.fillStyle = i % 2? '#7c4f34' : '#95643f';
     ctx.fillRect(0, i * (h / 9), w, h / 9 - 2);
   }
   ctx.globalAlpha = 0.12;
   for (let i = 0; i < 400; i++) {
-    ctx.fillStyle = Math.random() > 0.5 ? '#000' : '#fff';
+    ctx.fillStyle = Math.random() > 0.5? '#000' : '#fff';
     ctx.fillRect(Math.random() * w, Math.random() * h, 20, 1);
   }
 }, 256, 256, [6, 10]);
@@ -94,7 +99,7 @@ const woodTex = canvasTex((ctx, w, h) => {
 const deckTex = canvasTex((ctx, w, h) => {
   ctx.fillStyle = '#6b4530'; ctx.fillRect(0, 0, w, h);
   for (let i = 0; i < 7; i++) {
-    ctx.fillStyle = i % 2 ? '#5f3c29' : '#7a4f37';
+    ctx.fillStyle = i % 2? '#5f3c29' : '#7a4f37';
     ctx.fillRect(0, i * (h / 7), w, h / 7 - 3);
   }
 }, 256, 256, [8, 14]);
@@ -120,7 +125,7 @@ const stoneTex = canvasTex((ctx, w, h) => {
 }, 200, 200, [5, 5]);
 
 /* ============================================================
-   MATERIALS (palette) - SUA CASA INTACTA
+   MATERIALS
    ============================================================ */
 const MAT = {
   ocre: new THREE.MeshStandardMaterial({ color: '#E2A83B', roughness: 0.85 }),
@@ -191,7 +196,7 @@ function sideWalls(zone, mat, h = 2.6) {
   addCollider(zone.x1 - 0.1, zone.x1 + 0.4, zone.z0, zone.z1);
 }
 
-/* ---------- PATIO (jardim de entrada) - INTACTO ---------- */
+/* ---------- PATIO ---------- */
 floorSlab(ZONE.patio, MAT.azulejo);
 sideWalls(ZONE.patio, MAT.ocre, 2.8);
 box(ZONE.patio.x1 - ZONE.patio.x0, 2.8, 0.3, MAT.ocre, 0, 1.4, ZONE.patio.z1);
@@ -206,7 +211,7 @@ function pottedPlant(x, z, scale = 1) {
   cyl(0.32 * scale, 0.26 * scale, 0.5 * scale, MAT.terracota, x, 0.25 * scale, z);
   const g = new THREE.Group();
   for (let i = 0; i < 6; i++) {
-    const leaf = new THREE.Mesh(new THREE.ConeGeometry(0.14 * scale, 0.9 * scale, 5), i % 2 ? MAT.leaf : MAT.leafDark);
+    const leaf = new THREE.Mesh(new THREE.ConeGeometry(0.14 * scale, 0.9 * scale, 5), i % 2? MAT.leaf : MAT.leafDark);
     leaf.position.set((Math.random() - 0.5) * 0.3 * scale, 0.75 * scale, (Math.random() - 0.5) * 0.3 * scale);
     leaf.rotation.z = (Math.random() - 0.5) * 0.6;
     leaf.castShadow = true;
@@ -218,11 +223,11 @@ function pottedPlant(x, z, scale = 1) {
 [[-5, 10], [5, 10], [-5, 17], [5, 17], [-3, 18.3], [3, 18.3]].forEach(([x, z]) => pottedPlant(x, z, 1 + Math.random() * 0.4));
 for (let z = 9; z < 19; z += 1.6) {
   [ZONE.patio.x0, ZONE.patio.x1].forEach((x) => {
-    sph(0.28 + Math.random() * 0.2, MAT.magenta, x + (x < 0 ? 0.3 : -0.3), 1.6 + Math.random() * 1.2, z);
+    sph(0.28 + Math.random() * 0.2, MAT.magenta, x + (x < 0? 0.3 : -0.3), 1.6 + Math.random() * 1.2, z);
   });
 }
 
-/* ---------- SALA DE ESTAR / ATELIÊ - INTACTO ---------- */
+/* ---------- SALA ---------- */
 floorSlab(ZONE.sala, MAT.wood);
 sideWalls(ZONE.sala, MAT.branco, 2.7);
 for (let z = 0; z < 8; z += 3) {
@@ -237,7 +242,7 @@ box(0.22, 0.6, 1.0, MAT.mostarda, -2.35, 0.65, 6.5);
 box(3.4, 0.03, 2.2, new THREE.MeshStandardMaterial({ color: '#a8433a', roughness: 0.9 }), -2, 0.02, 4.6);
 box(1.8, 2.2, 0.4, MAT.wood, 5.4, 1.1, 6.8);
 for (let i = 0; i < 4; i++) box(1.6, 0.06, 0.36, MAT.terracota, 5.4, 0.35 + i * 0.55, 6.8);
-for (let i = 0; i < 10; i++) box(0.14, 0.4, 0.28, i % 3 === 0 ? MAT.turquesa : (i % 3 === 1 ? MAT.magenta : MAT.esmeralda), 4.75 + i * 0.15, 1.85, 6.78);
+for (let i = 0; i < 10; i++) box(0.14, 0.4, 0.28, i % 3 === 0? MAT.turquesa : (i % 3 === 1? MAT.magenta : MAT.esmeralda), 4.75 + i * 0.15, 1.85, 6.78);
 function easelLeg(x, z, rz) { const l = box(0.07, 1.5, 0.07, MAT.wood, x, 0.75, z); l.rotation.z = rz; return l; }
 easelLeg(0, 0, 0.18); easelLeg(-0.55, 0.35, -0.22); easelLeg(0.55, 0.35, -0.22);
 const canvasTexture = canvasTex((ctx, w, h) => {
@@ -251,7 +256,7 @@ const paintingMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 1.15), new THRE
 paintingMesh.position.set(0, 1.35, 0.02);
 world.add(paintingMesh);
 
-/* ---------- CORREDOR DAS MEMÓRIAS - INTACTO ---------- */
+/* ---------- CORREDOR ---------- */
 const ZONE_HALL_WIDE = { x0: ZONE.sala.x0, x1: ZONE.sala.x1, z0: ZONE.corredor.z0, z1: ZONE.corredor.z1 };
 floorSlab(ZONE_HALL_WIDE, MAT.wood);
 sideWalls(ZONE_HALL_WIDE, MAT.ocre, 2.6);
@@ -261,19 +266,19 @@ for (let z = -9; z <= -2; z += 3.5) {
 }
 for (let z = -9; z < -1; z += 2.5) {
   [ZONE.sala.x0, ZONE.sala.x1].forEach((x) => {
-    const s = sph(0.1, new THREE.MeshStandardMaterial({ color: '#ffdca0', emissive: '#ffb852', emissiveIntensity: 1.4 }), x + (x < 0 ? 0.3 : -0.3), 2.1, z);
+    const s = sph(0.1, new THREE.MeshStandardMaterial({ color: '#ffdca0', emissive: '#ffb852', emissiveIntensity: 1.4 }), x + (x < 0? 0.3 : -0.3), 2.1, z);
     const pl = new THREE.PointLight('#ffb852', 4, 5);
     pl.position.copy(s.position);
     world.add(pl);
   });
 }
 
-/* ---------- COZINHA - INTACTO ---------- */
+/* ---------- COZINHA ---------- */
 box(2.6, 0.9, 0.7, MAT.wood, 4.1, 0.45, -8.2);
 cyl(0.08, 0.08, 0.3, new THREE.MeshStandardMaterial({ color: '#3a2818' }), 3.6, 1.05, -8.2);
 pottedPlant(5.3, -7, 0.7);
 
-/* ---------- VARANDA - INTACTO ---------- */
+/* ---------- VARANDA ---------- */
 floorSlab(ZONE.varanda, MAT.deck);
 sideWalls(ZONE.varanda, MAT.ocre, 2.4);
 const railGroup = new THREE.Group();
@@ -327,53 +332,42 @@ cyl(0.05, 0.05, 0.75, MAT.ferro, 0, 0.4, -19);
 });
 box(ZONE.sala.x1 - ZONE.sala.x0 - 3, 0.06, 0.5, MAT.dourado, 0, 0.02, ZONE.sala.z0 + 0.1);
 
-
 /* ============================================================
-   NOVO: CENÁRIO CARIOCA ULTRA COMPLETO - RUA, BONDINHO, PÃO, SOL, PRAIA
+   CENÁRIO CARIOCA
    ============================================================ */
 const rioGroup = new THREE.Group();
 world.add(rioGroup);
-
-// Chão gigante mata atlântica
 const bigGround = new THREE.Mesh(new THREE.PlaneGeometry(500,500), new THREE.MeshStandardMaterial({color:'#1d4a2e', roughness:1}));
 bigGround.rotation.x=-Math.PI/2; bigGround.position.y=-0.35; bigGround.receiveShadow=true;
 rioGroup.add(bigGround);
-
-// Rua de Santa Teresa descendo - paralelepípedo bem visível
-// IMPORTANTE: a casa ocupa x:[-7.2,7.2] e z:[-23.5,19] (varanda é o cômodo mais "de fora", com z0=-23.5).
-// A rua/trilho/bondinho ficam TODOS além de z=-23.5 (visíveis a partir da varanda, sem cruzar dentro da casa).
-const RUA_Z_CENTRO = -78; // centro da rua, bem além da varanda
-const RUA_Z_METADE = 45;  // metade do comprimento da rua
+const RUA_Z_CENTRO = -78;
+const RUA_Z_METADE = 45;
 const streetMat = new THREE.MeshStandardMaterial({color:'#6a6a6a', roughness:0.95});
 const street = new THREE.Mesh(new THREE.PlaneGeometry(10, RUA_Z_METADE * 2), streetMat);
 street.rotation.x=-Math.PI/2; street.position.set(0,-0.28,RUA_Z_CENTRO); street.receiveShadow=true;
 rioGroup.add(street);
-// Trilhos do bondinho de Santa Teresa (2 trilhos)
 const railMat = new THREE.MeshStandardMaterial({color:'#2a2a2a', metalness:0.7, roughness:0.3});
 for(let side of [-1.4,1.4]){
   const rail = new THREE.Mesh(new THREE.BoxGeometry(0.22,0.12,RUA_Z_METADE * 2), railMat);
   rail.position.set(side,-0.22,RUA_Z_CENTRO); rioGroup.add(rail);
 }
-// Bondinho de Santa Teresa - TRAM que anda na rua (não é o do Pão de Açúcar)
 const tramGroup = new THREE.Group();
 const tramBase = new THREE.Mesh(new THREE.BoxGeometry(1.8,1.0,3.2), new THREE.MeshStandardMaterial({color:'#ffcc00'}));
 tramBase.position.y=0.6; tramGroup.add(tramBase);
 const tramRoof = new THREE.Mesh(new THREE.BoxGeometry(1.9,0.15,3.3), new THREE.MeshStandardMaterial({color:'#8a4a2a'}));
 tramRoof.position.y=1.2; tramGroup.add(tramRoof);
-for(let i=0;i<4;i++){ const wheel=new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.18,0.1,8), new THREE.MeshStandardMaterial({color:'#1a1a1a'})); wheel.rotation.z=Math.PI/2; wheel.position.set(i<2?-0.9:0.9,0.18, i%2==0 ? -1.0 : 1.0); tramGroup.add(wheel); }
+for(let i=0;i<4;i++){ const wheel=new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.18,0.1,8), new THREE.MeshStandardMaterial({color:'#1a1a1a'})); wheel.rotation.z=Math.PI/2; wheel.position.set(i<2?-0.9:0.9,0.18, i%2==0? -1.0 : 1.0); tramGroup.add(wheel); }
 tramGroup.position.set(0,0,RUA_Z_CENTRO);
 tramGroup.castShadow=true;
 rioGroup.add(tramGroup);
 rioGroup.userData.tramGroup=tramGroup;
 rioGroup.userData.tramZCentro = RUA_Z_CENTRO;
-rioGroup.userData.tramAmplitude = RUA_Z_METADE - 5; // margem de segurança nas pontas dos trilhos
+rioGroup.userData.tramAmplitude = RUA_Z_METADE - 5;
 
-// Pão de Açúcar - 2 morros icônicos bem detalhados
 const paoMat = new THREE.MeshStandardMaterial({color:'#4a5a6a', roughness:0.8});
 const paoBase = new THREE.Mesh(new THREE.CylinderGeometry(3.2,4.8,5,14), paoMat); paoBase.position.set(22,2.2,-58); paoBase.castShadow=true; rioGroup.add(paoBase);
 const paoTop = new THREE.Mesh(new THREE.SphereGeometry(3.4,20,16,0,Math.PI*2,0,Math.PI*0.6), paoMat); paoTop.position.set(22,6,-58); paoTop.scale.set(1,1.4,1); paoTop.castShadow=true; rioGroup.add(paoTop);
 const urca = new THREE.Mesh(new THREE.ConeGeometry(3.0,4.5,12), paoMat); urca.position.set(16,2,-54); urca.castShadow=true; rioGroup.add(urca);
-// Cabo do bondinho do Pão de Açúcar
 const cableMat = new THREE.MeshStandardMaterial({color:'#1a1a1a'});
 const cableCurve = new THREE.CatmullRomCurve3([ new THREE.Vector3(0,12,-23), new THREE.Vector3(8,20,-38), new THREE.Vector3(15,18,-52), new THREE.Vector3(22,10,-58) ]);
 const cableGeo = new THREE.TubeGeometry(cableCurve, 28, 0.03, 6, false);
@@ -383,26 +377,22 @@ const bondinho1 = new THREE.Mesh(bondinhoGeo, new THREE.MeshStandardMaterial({co
 const bondinho2 = new THREE.Mesh(bondinhoGeo, new THREE.MeshStandardMaterial({color:'#e63946'})); bondinho2.name='bondinho2'; rioGroup.add(bondinho2);
 rioGroup.userData.cableCurve=cableCurve; rioGroup.userData.bondinho1=bondinho1; rioGroup.userData.bondinho2=bondinho2;
 
-// Corcovado + Cristo Redentor
 const greenHillMat = new THREE.MeshStandardMaterial({color:'#1e5a3a', roughness:0.9});
 const corcovado = new THREE.Mesh(new THREE.ConeGeometry(8,10,8), greenHillMat); corcovado.position.set(-24,3.5,-72); corcovado.castShadow=true; rioGroup.add(corcovado);
 const cristoBase = new THREE.Mesh(new THREE.BoxGeometry(0.4,1.5,0.4), new THREE.MeshStandardMaterial({color:'#e8e0d0'})); cristoBase.position.set(-24,10.5,-72); rioGroup.add(cristoBase);
 const cristoBraco = new THREE.Mesh(new THREE.BoxGeometry(2.0,0.25,0.25), new THREE.MeshStandardMaterial({color:'#e8e0d0'})); cristoBraco.position.set(-24,11.2,-72); rioGroup.add(cristoBraco);
 
-// Praia + Areia + Mar da Baía de Guanabara
 const sandMat = new THREE.MeshStandardMaterial({color:'#e8d5a8', roughness:1});
 const sand = new THREE.Mesh(new THREE.PlaneGeometry(120,20), sandMat); sand.rotation.x=-Math.PI/2; sand.position.set(10,-0.4,-68); rioGroup.add(sand);
 const waterMat = new THREE.MeshStandardMaterial({color:'#1a6a8a', roughness:0.1, metalness:0.2, transparent:true, opacity:0.85});
 const water = new THREE.Mesh(new THREE.PlaneGeometry(300,120), waterMat); water.rotation.x=-Math.PI/2; water.position.set(20,-0.45,-85); rioGroup.add(water);
 
-// Sol 3D bem visível + brilho
 const sunMesh = new THREE.Mesh(new THREE.SphereGeometry(3.0,20,16), new THREE.MeshBasicMaterial({color:'#ffaa33'}));
 sunMesh.position.set(-28,28,-50); rioGroup.add(sunMesh);
 const sunGlow = new THREE.Mesh(new THREE.SphereGeometry(5.0,16,12), new THREE.MeshBasicMaterial({color:'#ffcc66', transparent:true, opacity:0.25}));
 sunGlow.position.copy(sunMesh.position); rioGroup.add(sunGlow);
 const sunLight = new THREE.PointLight('#ffb852', 2, 80); sunLight.position.copy(sunMesh.position); rioGroup.add(sunLight);
 
-// Casinhas coloridas de Santa Teresa ao redor (mais)
 const houseColors = ['#E2A83B','#D6488C','#1B4D6B','#B85A3C','#1E6B4F','#f4ede0','#ff7eb0'];
 for(let i=0;i<28;i++){
   const col = houseColors[Math.floor(Math.random()*houseColors.length)];
@@ -414,8 +404,6 @@ for(let i=0;i<28;i++){
   const house=new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mat); house.position.set(x,h/2-0.3,z); house.castShadow=true; rioGroup.add(house);
   const roof=new THREE.Mesh(new THREE.ConeGeometry(w*0.7,0.6,4), new THREE.MeshStandardMaterial({color:'#8a4a3a'})); roof.position.set(x,h-0.05,z); roof.rotation.y=Math.PI/4; rioGroup.add(roof);
 }
-
-// Palmeiras tropicais
 function palm(x,z,s=1){
   const trunk=new THREE.Mesh(new THREE.CylinderGeometry(0.08*s,0.12*s,2.8*s,8), new THREE.MeshStandardMaterial({color:'#5a3a2a'}));
   trunk.position.set(x,1.4*s-0.3,z); trunk.castShadow=true; rioGroup.add(trunk);
@@ -428,8 +416,6 @@ for(let i=0;i<18;i++){
   const ang=Math.random()*Math.PI*2, rad=12+Math.random()*28;
   palm(Math.cos(ang)*rad, Math.sin(ang)*rad-8, 0.9+Math.random()*0.6);
 }
-
-// Guarda-sóis coloridos na areia (estilo praia carioca)
 const umbrellaColors = ['#e63946','#f4a261','#2e7d4f','#1B4D6B','#ffcc00'];
 function beachUmbrella(x,z){
   const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.035,1.6,6), new THREE.MeshStandardMaterial({color:'#e8e0d0'}));
@@ -440,7 +426,6 @@ function beachUmbrella(x,z){
 }
 for(let i=0;i<9;i++) beachUmbrella(-20+i*7+(Math.random()-0.5)*2, -62+(Math.random()-0.5)*4);
 
-// Gaivotas simples sobrevoando o mar
 const seagulls = [];
 function seagull(x,y,z){
   const g=new THREE.Group();
@@ -456,83 +441,107 @@ seagull(0,14,-60); seagull(6,16,-66); seagull(-8,15,-56);
 rioGroup.userData.seagulls = seagulls;
 
 /* ============================================================
-   PERSONAGEM (SOFIA) - SPRITE 2D SEMPRE DE FRENTE PRA CÂMERA
-   ------------------------------------------------------------
-   Em vez de um boneco 3D com cubos, a Sofia agora é um "cartão"
-   2D (billboard) com a ilustração dela de verdade — ele gira
-   sozinho pra sempre ficar de frente pra câmera (técnica clássica
-   de jogos 2.5D, tipo Paper Mario), então nunca aparece torto ou
-   esticado, não importa o ângulo que você gire a câmera. Ele troca
-   de imagem conforme a ação (parada / andando / atacando / etc.)
-   e espelha horizontalmente pro lado certo conforme ela anda.
-
-   ARQUIVOS (assets/sprites/character/<figurino>/<estado>.png):
-     tropical/idle.png, walk1.png, walk2.png, attack.png, shock.png
-     princess/idle.png, walk1.png, walk2.png, shock.png, celebrate.png
-
-   Cada imagem deve ser um PNG com fundo transparente, já recortado
-   rente ao desenho (sem sobra de espaço em branco/transparente ao
-   redor) — isso evita a personagem "pular" de tamanho ao trocar de
-   frame. Se um arquivo não existir, o jogo não quebra: só mantém o
-   último frame carregado com sucesso naquele estado.
+   PERSONAGEM (SOFIA) - SPRITE 2D CORRIGIDA
    ============================================================ */
-const CHARACTER_SPRITE_BASE = 'assets/sprites/character/';
-const CHARACTER_TARGET_HEIGHT = 1.7; // altura em unidades do mundo (mesma escala do boneco antigo)
-const spriteTextureLoader = new THREE.TextureLoader();
-const spriteCache = {}; // 'costume/estado' -> { texture, aspect, ready, pending[] }
+const CHARACTER_SPRITE_BASE = './assets/sprites/character/';
+const CHARACTER_TARGET_HEIGHT = 1.7;
+const spriteTextureLoader = new THREE.TextureLoader(loadingManager);
+const spriteCache = {};
+
+function createPlaceholderTexture(label) {
+  const c = document.createElement('canvas'); c.width = 256; c.height = 256;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#ff4da6'; ctx.fillRect(0,0,256,256);
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 18px sans-serif';
+  ctx.fillText(label, 10, 30);
+  ctx.fillText('PNG NAO ENCONTRADO', 10, 60);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
 function loadCharacterFrame(costume, state) {
   const key = costume + '/' + state;
   if (spriteCache[key]) return spriteCache[key];
   const entry = { texture: null, aspect: 1, ready: false, pending: [] };
   spriteCache[key] = entry;
+  const url = CHARACTER_SPRITE_BASE + key + '.png';
+  console.log('[Sofia] carregando', url);
+
   spriteTextureLoader.load(
-    CHARACTER_SPRITE_BASE + key + '.png',
+    url,
     (tex) => {
       tex.colorSpace = THREE.SRGBColorSpace;
+      tex.magFilter = THREE.LinearFilter;
+      tex.minFilter = THREE.LinearFilter;
       entry.texture = tex;
       entry.aspect = tex.image.width / tex.image.height;
       entry.ready = true;
+      console.log('[Sofia] OK', url, `${tex.image.width}x${tex.image.height}`);
       entry.pending.forEach((fn) => fn());
       entry.pending.length = 0;
     },
     undefined,
-    () => { console.warn(`[sprites] não encontrei ${CHARACTER_SPRITE_BASE}${key}.png`); }
+    () => {
+      console.error(`[Sofia] FALHOU - não encontrei ${url} - Verifique se o arquivo existe no GitHub`);
+      const fallback = createPlaceholderTexture(key);
+      entry.texture = fallback;
+      entry.aspect = 1;
+      entry.ready = true;
+      entry.pending.forEach((fn) => fn());
+      entry.pending.length = 0;
+    }
   );
   return entry;
 }
+
 function applyFrameToSprite(group, entry) {
   const sprite = group.userData.sprite;
+  if (!sprite ||!entry.texture) return;
   sprite.material.map = entry.texture;
   sprite.material.needsUpdate = true;
+  sprite.material.color.set(0xffffff);
   const h = CHARACTER_TARGET_HEIGHT;
   const w = h * entry.aspect;
   sprite.scale.set(w * group.userData.facing, h, 1);
+  sprite.visible = true;
 }
-// Troca o frame exibido (ex.: 'idle', 'walk1', 'attack'...) sem mexer no lado que ela está olhando
+
 function setSpriteFrame(group, state) {
   if (group.userData.currentState === state) return;
   group.userData.currentState = state;
   const entry = loadCharacterFrame(group.userData.costume, state);
-  if (entry.ready) applyFrameToSprite(group, entry);
-  else entry.pending.push(() => { if (group.userData.currentState === state) applyFrameToSprite(group, entry); });
+  if (entry.ready) {
+    applyFrameToSprite(group, entry);
+  } else {
+    entry.pending.push(() => {
+      if (group.userData.currentState === state) applyFrameToSprite(group, entry);
+    });
+  }
 }
-// Espelha o sprite pro lado certo (1 = olhando/andando pra direita, -1 = pra esquerda). As artes originais olham pra direita.
+
 function setSpriteFacing(group, facing) {
   if (group.userData.facing === facing) return;
   group.userData.facing = facing;
   const sprite = group.userData.sprite;
-  sprite.scale.x = Math.abs(sprite.scale.x) * facing;
+  if (sprite) sprite.scale.x = Math.abs(sprite.scale.x) * facing;
 }
+
 function createSpriteCharacter(costume, states) {
   const group = new THREE.Group();
-  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ transparent: true }));
-  sprite.center.set(0.5, 0); // ancora no chão (pé), não no meio do sprite
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+    transparent: true,
+    alphaTest: 0.01,
+    color: 0xffffff
+  }));
+  sprite.center.set(0.5, 0);
+  sprite.visible = false; // esconde até carregar
   group.add(sprite);
   group.userData.sprite = sprite;
   group.userData.costume = costume;
   group.userData.currentState = null;
   group.userData.facing = 1;
-  states.forEach((s) => loadCharacterFrame(costume, s)); // pré-carrega todos os frames desse figurino
+  states.forEach((s) => loadCharacterFrame(costume, s));
   return group;
 }
 
@@ -554,15 +563,14 @@ blobShadow.position.set(0,0.02,4);
 world.add(blobShadow);
 
 /* ============================================================
-   SUPER PODER - EFEITO DE FLORES / PÉTALAS
+   SUPER PODER - FLORES
    ============================================================ */
 const flowerPowerGroup = new THREE.Group();
 world.add(flowerPowerGroup);
 
 function spawnFlowerPower(origin, direction){
-  // Cria 25 pétalas voando
   for(let i=0;i<25;i++){
-    const petalMat = new THREE.MeshStandardMaterial({color: i%3===0 ? '#ff7eb0' : (i%3===1 ? '#E8C468' : '#2e7d4f'), side:THREE.DoubleSide});
+    const petalMat = new THREE.MeshStandardMaterial({color: i%3===0? '#ff7eb0' : (i%3===1? '#E8C468' : '#2e7d4f'), side:THREE.DoubleSide});
     const petal = new THREE.Mesh(new THREE.PlaneGeometry(0.12,0.08), petalMat);
     petal.position.copy(origin).add(new THREE.Vector3((Math.random()-0.5)*0.5, Math.random()*0.5, (Math.random()-0.5)*0.5));
     petal.lookAt(origin.clone().add(direction));
@@ -571,7 +579,6 @@ function spawnFlowerPower(origin, direction){
     petal.userData.spin = (Math.random()-0.5)*10;
     flowerPowerGroup.add(petal);
   }
-  // Luz rápida
   const flash = new THREE.PointLight('#ff7eb0', 8, 6);
   flash.position.copy(origin);
   world.add(flash);
@@ -582,7 +589,7 @@ function updateFlowerPower(dt){
   for(let i=flowerPowerGroup.children.length-1;i>=0;i--){
     const p=flowerPowerGroup.children[i];
     p.position.add(p.userData.vel.clone().multiplyScalar(dt));
-    p.userData.vel.y -= 1.5*dt; // gravidade
+    p.userData.vel.y -= 1.5*dt;
     p.rotation.z += p.userData.spin*dt;
     p.userData.life -= dt*0.9;
     p.material.opacity = p.userData.life;
@@ -591,9 +598,6 @@ function updateFlowerPower(dt){
   }
 }
 
-
-
-// Campo de estrelas usado na transição pro entardecer (tweenSky) - some de dia, aparece ao anoitecer
 const starGeo = new THREE.BufferGeometry();
 const starCount = 260;
 const starPositions = new Float32Array(starCount * 3);
@@ -621,8 +625,6 @@ const player = {
   moveDir: new THREE.Vector3()
 };
 
-// Poder de flores: usável a qualquer momento pelo botão dedicado (mobile) ou tecla F (PC).
-// Se o jogador estiver perto da vinha ainda não limpa, também libera a passagem.
 let flowerPowerCooldown = 0;
 function triggerFlowerBurst() {
   if (player.locked || dialogueActive || flowerPowerCooldown > 0) return;
@@ -646,11 +648,11 @@ function setPlayerAction(kind, duration){
   if(kind==='attack'){
     setSpriteFrame(mesh, 'attack');
     const origin = playerMesh.position.clone().add(new THREE.Vector3(0,1.2,0));
-    const dir = player.moveDir.length()>0.1 ? player.moveDir.clone() : new THREE.Vector3(0,0,-1);
+    const dir = player.moveDir.length()>0.1? player.moveDir.clone() : new THREE.Vector3(0,0,-1);
     spawnFlowerPower(origin, dir);
   } else if(kind==='shock'){
     setSpriteFrame(mesh, 'shock');
-    playerMesh.scale.y=0.9; playerMesh.position.y=-0.08; // pequeno "encolhida de susto"
+    playerMesh.scale.y=0.9; playerMesh.position.y=-0.08;
   } else if(kind==='celebrate'){
     setSpriteFrame(mesh, 'celebrate');
     playerMesh.position.y=0.15;
@@ -659,15 +661,12 @@ function setPlayerAction(kind, duration){
   setPlayerAction._t=setTimeout(()=>{
     player.locked=false;
     playerMesh.position.y=0; playerMesh.scale.y=1;
-    setSpriteFrame(mesh, 'idle'); // updatePlayer troca pra walk1/walk2 no próximo frame se ela estiver andando
+    setSpriteFrame(mesh, 'idle');
   },duration);
 }
 
 /* ============================================================
-   NPC "ELE" - SEU BONECO 3D MINECRAFT TAMBÉM COM SKIN
-   ============================================================ */
-/* ============================================================
-   NPC "ELE" - SEU BONECO 3D (MANTIDO E MELHORADO)
+   NPC "ELE"
    ============================================================ */
 const eleGroup = new THREE.Group();
 const skinMat = new THREE.MeshStandardMaterial({ color: '#c98a5e', roughness: 0.7 });
@@ -696,7 +695,7 @@ eleBoxShadow.position.set(eleGroup.position.x, 0.02, eleGroup.position.z);
 world.add(eleBoxShadow);
 
 /* ============================================================
-   INTERACTABLE OBJECTS - INTACTO
+   INTERACTABLE OBJECTS
    ============================================================ */
 function floatBob(mesh, speed = 2, amp = 0.12) {
   mesh.userData._bobBase = mesh.position.y;
@@ -719,7 +718,7 @@ box(1.0, 0.5, 0.65, MAT.wood, 5.3, 0.25, 3.4);
 interactables.push({
   pos: new THREE.Vector3(5.3, 0, 3.4), radius: 1.6, id: 'vitrola',
   label: 'Tocar a vitrola', repeatable: true,
-  onInteract: () => { toggleAmbientMusic(); toast(audioState.playing ? '🎵 Uma melodia familiar enche a sala de calor...' : 'A música parou.'); },
+  onInteract: () => { toggleAmbientMusic(); toast(audioState.playing? '🎵 Uma melodia familiar enche a sala de calor...' : 'A música parou.'); },
 });
 interactables.push({
   pos: new THREE.Vector3(0, 0, 0), radius: 1.6, id: 'quadro',
@@ -748,7 +747,7 @@ interactables.push({
 
 const vineGroup = new THREE.Group();
 for (let i = 0; i < 26; i++) {
-  const seg = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 1.4, 6), i % 2 ? MAT.leaf : MAT.leafDark);
+  const seg = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 1.4, 6), i % 2? MAT.leaf : MAT.leafDark);
   seg.position.set((Math.random() - 0.5) * 12.4, 0.7 + Math.random() * 1.6, -5.5 + (Math.random() - 0.5) * 0.4);
   seg.rotation.z = (Math.random() - 0.5) * 1.4;
   seg.rotation.y = Math.random() * Math.PI;
@@ -786,7 +785,7 @@ const hallLeftWall = ZONE.sala.x0 + 0.17, hallRightWall = ZONE.sala.x1 - 0.17;
   g.position.set(x, 1.55, z);
   g.rotation.y = ry;
   world.add(g);
-  memoryTriggers.push({ pos: new THREE.Vector3(x > 0 ? x - 2 : x + 2, 0, z), radius: 2.4, seen: false, art, text: CFG.memorias[i] });
+  memoryTriggers.push({ pos: new THREE.Vector3(x > 0? x - 2 : x + 2, 0, z), radius: 2.4, seen: false, art, text: CFG.memorias[i] });
 });
 
 const key2Mesh = new THREE.Group();
@@ -808,10 +807,10 @@ interactables.push({
 });
 
 const glassDoorGroup = new THREE.Group();
-const hallWidth = ZONE.sala.x1 - ZONE.sala.x0;
-const glassPane = new THREE.Mesh(new THREE.BoxGeometry(hallWidth, 2.5, 0.08), MAT.vidro);
+const hallWidth = ZONE.sala.x1 - ZONE.sala.x1 + (ZONE.sala.x1 - ZONE.sala.x0);
+const glassPane = new THREE.Mesh(new THREE.BoxGeometry(ZONE.sala.x1 - ZONE.sala.x0, 2.5, 0.08), MAT.vidro);
 glassPane.position.set(0, 1.25, -9.9);
-const glassFrame = new THREE.Mesh(new THREE.BoxGeometry(hallWidth + 0.15, 2.6, 0.12), new THREE.MeshStandardMaterial({ color: '#1B4D6B', roughness: 0.5 }));
+const glassFrame = new THREE.Mesh(new THREE.BoxGeometry(ZONE.sala.x1 - ZONE.sala.x0 + 0.15, 2.6, 0.12), new THREE.MeshStandardMaterial({ color: '#1B4D6B', roughness: 0.5 }));
 glassFrame.position.set(0, 1.25, -9.9);
 for (let x = ZONE.sala.x0 + 1; x < ZONE.sala.x1; x += 2) {
   const mull = new THREE.Mesh(new THREE.BoxGeometry(0.08, 2.5, 0.1), glassFrame.material);
@@ -851,7 +850,7 @@ interactables.push({
 });
 
 /* ============================================================
-   GAME STATE - INTACTO
+   GAME STATE
    ============================================================ */
 const state = {
   keys: [false, false, false],
@@ -879,7 +878,7 @@ function toast(msg) {
 }
 
 /* ============================================================
-   DIALOGUE SYSTEM - INTACTO
+   DIALOGUE SYSTEM
    ============================================================ */
 let dialogueQueue = [];
 let dialogueActive = false;
@@ -900,9 +899,9 @@ function nextLine(onDone) {
     return;
   }
   const line = dialogueQueue.shift();
-  const speakerLabel = line.falante === 'ele' ? CFG.nomeEle : (line.falante === 'ela' ? CFG.nomeEla : '');
+  const speakerLabel = line.falante === 'ele'? CFG.nomeEle : (line.falante === 'ela'? CFG.nomeEla : '');
   $('speakerName').textContent = speakerLabel;
-  $('speakerName').style.opacity = speakerLabel ? 1 : 0;
+  $('speakerName').style.opacity = speakerLabel? 1 : 0;
   const textEl = $('dialogueText');
   textEl.textContent = '';
   clearInterval(typeInterval);
@@ -949,7 +948,7 @@ $('giftCloseBtn').addEventListener('click', () => {
 });
 
 /* ============================================================
-   TRANSFORMATION CUTSCENE - ATUALIZADO PRA 3D
+   TRANSFORMATION CUTSCENE
    ============================================================ */
 function playTransformationCutscene() {
   state.transformed = true;
@@ -1025,7 +1024,7 @@ function checkMemories() {
 }
 
 /* ============================================================
-   INPUT - INTACTO
+   INPUT
    ============================================================ */
 const keysDown = {};
 window.addEventListener('keydown', (e) => {
@@ -1072,17 +1071,17 @@ $('actionBtn').addEventListener('click', () => tryInteract());
 let nearestInteractable = null;
 function tryInteract() {
   if (dialogueActive) { advanceDialogue(); return; }
-  if (nearestInteractable && !player.locked) nearestInteractable.onInteract();
+  if (nearestInteractable &&!player.locked) nearestInteractable.onInteract();
 }
 
 /* ============================================================
-   MOVEMENT / COLLISION - ATUALIZADO PRA 3D
+   MOVEMENT / COLLISION
    ============================================================ */
 const moveDir = new THREE.Vector3();
 const camForward = new THREE.Vector3();
 const camRight = new THREE.Vector3();
 const WORLD_UP = new THREE.Vector3(0, 1, 0);
-const WALK_FRAME_TIME = 0.18; // segundos entre a troca walk1 <-> walk2
+const WALK_FRAME_TIME = 0.18;
 function computeInput() {
   let ix = 0, iy = 0;
   if (keysDown['w'] || keysDown['arrowup']) iy -= 1;
@@ -1103,8 +1102,7 @@ function collidesAt(x, z) {
 function updatePlayer(dt) {
   const { ix, iy } = computeInput();
   player.moving = false;
-  if (!player.locked && (ix !== 0 || iy !== 0)) {
-    // Direção real da câmera (pra frente = pra "dentro da tela"), não o offset câmera->alvo (que apontava ao contrário e fazia andar pra trás)
+  if (!player.locked && (ix!== 0 || iy!== 0)) {
     camera.getWorldDirection(camForward);
     camForward.y = 0;
     if (camForward.lengthSq() < 1e-6) camForward.set(0, 0, -1); else camForward.normalize();
@@ -1116,20 +1114,16 @@ function updatePlayer(dt) {
     if (!collidesAt(nx, player.pos.z)) player.pos.x = nx;
     if (!collidesAt(player.pos.x, nz)) player.pos.z = nz;
     player.moving = true;
-
-    // Sprite sempre olha pra câmera sozinho (billboard); só precisamos espelhar
-    // pro lado certo, com base em pra onde ela está indo na TELA (não no mundo).
     const sideDot = moveDir.dot(camRight);
-    if (Math.abs(sideDot) > 0.15) setSpriteFacing(player.currentMesh, sideDot >= 0 ? 1 : -1);
+    if (Math.abs(sideDot) > 0.15) setSpriteFacing(player.currentMesh, sideDot >= 0? 1 : -1);
   }
   playerMesh.position.set(player.pos.x, 0, player.pos.z);
   blobShadow.position.set(player.pos.x, 0.02, player.pos.z);
 
-  // Animação: troca entre os frames prontos (parada / passo 1 / passo 2) — sem precisar de esqueleto
   if (!player.locked) {
     if (player.moving) {
       player.animTimer += dt;
-      const frame = Math.floor(player.animTimer / WALK_FRAME_TIME) % 2 === 0 ? 'walk1' : 'walk2';
+      const frame = Math.floor(player.animTimer / WALK_FRAME_TIME) % 2 === 0? 'walk1' : 'walk2';
       setSpriteFrame(player.currentMesh, frame);
     } else {
       player.animTimer = 0;
@@ -1147,7 +1141,7 @@ function updatePlayer(dt) {
   });
   nearestInteractable = best;
   const promptEl = $('interactPrompt');
-  if (best && !player.locked) {
+  if (best &&!player.locked) {
     $('interactLabel').textContent = best.label;
     promptEl.classList.add('show');
   } else {
@@ -1171,7 +1165,7 @@ function ensureAudio() {
   const Ctx = window.AudioContext || window.webkitAudioContext;
   audioState.ctx = new Ctx();
   audioState.master = audioState.ctx.createGain();
-  audioState.master.gain.value = audioState.muted ? 0 : 0.5;
+  audioState.master.gain.value = audioState.muted? 0 : 0.5;
   audioState.master.connect(audioState.ctx.destination);
 }
 function chime() {
@@ -1218,37 +1212,35 @@ function toggleAmbientMusic() {
 }
 $('soundToggle').addEventListener('click', () => {
   ensureAudio();
-  audioState.muted = !audioState.muted;
-  audioState.master.gain.value = audioState.muted ? 0 : 0.5;
-  $('soundToggle').textContent = audioState.muted ? '🔇' : '🔈';
+  audioState.muted =!audioState.muted;
+  audioState.master.gain.value = audioState.muted? 0 : 0.5;
+  $('soundToggle').textContent = audioState.muted? '🔇' : '🔈';
 });
 
 /* ============================================================
-   CONTROLES ADAPTATIVOS - PC x CELULAR (Minecraft-style no touch)
+   CONTROLES ADAPTATIVOS
    ============================================================ */
 (function setupAdaptiveControls() {
   const style = document.createElement('style');
   style.textContent = `
     #mcActionButtons { position: fixed; right: 18px; bottom: 22px; display: flex; flex-direction: column; gap: 14px; z-index: 40; }
-    .mc-btn { width: 62px; height: 62px; border-radius: 14px; border: 3px solid rgba(255,255,255,0.55);
+   .mc-btn { width: 62px; height: 62px; border-radius: 14px; border: 3px solid rgba(255,255,255,0.55);
       background: linear-gradient(180deg, rgba(60,50,45,0.55), rgba(20,16,14,0.65)); backdrop-filter: blur(2px);
       display: flex; align-items: center; justify-content: center; font-size: 26px; color: #fff;
       -webkit-tap-highlight-color: transparent; user-select: none; touch-action: manipulation;
       box-shadow: 0 3px 0 rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.25); }
-    .mc-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,0.35); background: rgba(0,0,0,0.55); }
-    .mc-btn--flower { border-color: #ff9ec7; }
+   .mc-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,0.35); background: rgba(0,0,0,0.55); }
+   .mc-btn--flower { border-color: #ff9ec7; }
     #pcHint { position: fixed; left: 18px; bottom: 18px; z-index: 40; font: 12px/1.4 system-ui, sans-serif;
       color: #fff; background: rgba(0,0,0,0.35); padding: 6px 10px; border-radius: 8px; letter-spacing: 0.2px; }
-    body:not(.is-touch) #mcActionButtons { display: none !important; }
-    body.is-touch #pcHint { display: none !important; }
+    body:not(.is-touch) #mcActionButtons { display: none!important; }
+    body.is-touch #pcHint { display: none!important; }
   `;
   document.head.appendChild(style);
 
   if (isTouch) {
-    // Some com qualquer texto/lembrete de tecla de PC que já exista na tela
     const legacyPrompt = $('interactPrompt');
     if (legacyPrompt) legacyPrompt.classList.add('mobile-mode');
-
     const wrap = document.createElement('div');
     wrap.id = 'mcActionButtons';
     wrap.innerHTML = `
@@ -1260,9 +1252,8 @@ $('soundToggle').addEventListener('click', () => {
     $('flowerBtn').addEventListener('click', () => triggerFlowerBurst());
     $('mcInteractBtn').addEventListener('touchstart', (e) => { e.preventDefault(); tryInteract(); }, { passive: false });
     $('mcInteractBtn').addEventListener('click', () => tryInteract());
-    // Se existir o botão antigo de interação, deixa ele visível também (compatibilidade), sem duplicar textos de tecla
     const oldActionBtn = $('actionBtn');
-    if (oldActionBtn) oldActionBtn.style.display = 'none'; // substituído pelo mcInteractBtn
+    if (oldActionBtn) oldActionBtn.style.display = 'none';
   } else {
     const hint = document.createElement('div');
     hint.id = 'pcHint';
@@ -1272,23 +1263,21 @@ $('soundToggle').addEventListener('click', () => {
 })();
 
 /* ============================================================
-   TITLE / LOADING FLOW - CORRIGIDO PRA NÃO FICAR CARREGANDO
+   TITLE / LOADING FLOW - usa o mesmo loadingManager das sprites
    ============================================================ */
-const loadingManager = new THREE.LoadingManager();
 loadingManager.onProgress = (u, loaded, total) => { const el=$('loadbarFill'); if(el) el.style.width = (loaded / total * 100) + '%'; };
 loadingManager.onLoad = () => {
   $('loading').classList.add('hidden');
   $('titleScreen').classList.remove('hidden');
 };
-// Fallback GARANTIDO - mesmo sem sprites carrega
 setTimeout(() => {
   const loadEl=$('loading'); const titleEl=$('titleScreen');
-  if (loadEl && !loadEl.classList.contains('hidden')) {
+  if (loadEl &&!loadEl.classList.contains('hidden')) {
     loadEl.classList.add('hidden');
     if(titleEl) titleEl.classList.remove('hidden');
   }
   const bar=$('loadbarFill'); if(bar) bar.style.width='100%';
-}, 1200);
+}, 2000);
 
 $('startBtn').addEventListener('click', () => {
   $('titleScreen').classList.add('hidden');
@@ -1298,13 +1287,13 @@ const howToBtnEl = $('howToBtn');
 if (howToBtnEl) {
   howToBtnEl.addEventListener('click', () => {
     toast(isTouch
-      ? '👆 Use o manete pra andar. Toque em ✋ para interagir e em 🌸 para a rajada de flores.'
-      : '⌨️ Use WASD ou as setas pra andar. Pressione E (ou espaço) para interagir e F para a rajada de flores.');
+     ? '👆 Use o manete pra andar. Toque em ✋ para interagir e em 🌸 para a rajada de flores.'
+      : '⌨ Use WASD ou as setas pra andar. Pressione E (ou espaço) para interagir e F para a rajada de flores.');
   });
 }
 
 /* ============================================================
-   MAIN LOOP - COM BONDINHO ANIMADO
+   MAIN LOOP
    ============================================================ */
 const clock = new THREE.Clock();
 function animate() {
@@ -1317,7 +1306,6 @@ function animate() {
   updateFlowerPower(dt);
   const eleBob = Math.sin(t * 1.3) * 0.02;
   eleGroup.position.y = eleBob;
-  // Anima bondinho Pão de Açúcar
   if(rioGroup && rioGroup.userData.cableCurve){
     const c=rioGroup.userData.cableCurve;
     const p1=c.getPoint((t*0.04)%1);
@@ -1325,7 +1313,6 @@ function animate() {
     if(rioGroup.userData.bondinho1) rioGroup.userData.bondinho1.position.copy(p1);
     if(rioGroup.userData.bondinho2) rioGroup.userData.bondinho2.position.copy(p2);
   }
-  // Anima as gaivotas sobrevoando o mar em círculos suaves
   if (rioGroup && rioGroup.userData.seagulls) {
     rioGroup.userData.seagulls.forEach((s) => {
       const ang = t * s.speed + s.phase;
@@ -1333,7 +1320,6 @@ function animate() {
       s.mesh.rotation.y = -ang - Math.PI / 2;
     });
   }
-  // Anima bondinho de Santa Teresa na rua (fica sempre além da varanda, nunca cruza a casa)
   if(rioGroup && rioGroup.userData.tramGroup){
     const tram=rioGroup.userData.tramGroup;
     tram.position.z = rioGroup.userData.tramZCentro - Math.sin(t*0.3) * rioGroup.userData.tramAmplitude;
