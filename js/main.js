@@ -6,9 +6,6 @@ const $ = (id) => document.getElementById(id);
 const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
 if (isTouch) document.body.classList.add('is-touch');
 
-/* ============================================================
-   LOADING MANAGER - precisa ser criado ANTES das sprites
-   ============================================================ */
 const loadingManager = new THREE.LoadingManager();
 
 /* ============================================================
@@ -404,6 +401,7 @@ for(let i=0;i<28;i++){
   const house=new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mat); house.position.set(x,h/2-0.3,z); house.castShadow=true; rioGroup.add(house);
   const roof=new THREE.Mesh(new THREE.ConeGeometry(w*0.7,0.6,4), new THREE.MeshStandardMaterial({color:'#8a4a3a'})); roof.position.set(x,h-0.05,z); roof.rotation.y=Math.PI/4; rioGroup.add(roof);
 }
+
 function palm(x,z,s=1){
   const trunk=new THREE.Mesh(new THREE.CylinderGeometry(0.08*s,0.12*s,2.8*s,8), new THREE.MeshStandardMaterial({color:'#5a3a2a'}));
   trunk.position.set(x,1.4*s-0.3,z); trunk.castShadow=true; rioGroup.add(trunk);
@@ -416,6 +414,7 @@ for(let i=0;i<18;i++){
   const ang=Math.random()*Math.PI*2, rad=12+Math.random()*28;
   palm(Math.cos(ang)*rad, Math.sin(ang)*rad-8, 0.9+Math.random()*0.6);
 }
+
 const umbrellaColors = ['#e63946','#f4a261','#2e7d4f','#1B4D6B','#ffcc00'];
 function beachUmbrella(x,z){
   const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.035,1.6,6), new THREE.MeshStandardMaterial({color:'#e8e0d0'}));
@@ -441,101 +440,69 @@ seagull(0,14,-60); seagull(6,16,-66); seagull(-8,15,-56);
 rioGroup.userData.seagulls = seagulls;
 
 /* ============================================================
-   PERSONAGEM (SOFIA) - SPRITE 2D CORRIGIDA
+   PERSONAGEM SOFIA - CORREÇÃO FINAL PARA SEU REPO FLAT
+   Seus arquivos são: assets/sprites/tropical_idle.png etc.
    ============================================================ */
-const CHARACTER_SPRITE_BASE = './assets/sprites/character/';
+const CHARACTER_SPRITE_BASE = './assets/sprites/';
 const CHARACTER_TARGET_HEIGHT = 1.7;
 const spriteTextureLoader = new THREE.TextureLoader(loadingManager);
 const spriteCache = {};
 
-function createPlaceholderTexture(label) {
-  const c = document.createElement('canvas'); c.width = 256; c.height = 256;
-  const ctx = c.getContext('2d');
-  ctx.fillStyle = '#ff4da6'; ctx.fillRect(0,0,256,256);
-  ctx.fillStyle = '#fff'; ctx.font = 'bold 18px sans-serif';
-  ctx.fillText(label, 10, 30);
-  ctx.fillText('PNG NAO ENCONTRADO', 10, 60);
-  const t = new THREE.CanvasTexture(c);
-  t.colorSpace = THREE.SRGBColorSpace;
-  return t;
-}
-
 function loadCharacterFrame(costume, state) {
-  const key = costume + '/' + state;
-  if (spriteCache[key]) return spriteCache[key];
+  const cacheKey = costume + '/' + state;
+  if (spriteCache[cacheKey]) return spriteCache[cacheKey];
   const entry = { texture: null, aspect: 1, ready: false, pending: [] };
-  spriteCache[key] = entry;
-  const url = CHARACTER_SPRITE_BASE + key + '.png';
-  console.log('[Sofia] carregando', url);
+  spriteCache[cacheKey] = entry;
+
+  // CORREÇÃO: usa underline igual seus arquivos
+  const fileName = `${costume}_${state}.png`;
+  const url = CHARACTER_SPRITE_BASE + fileName;
 
   spriteTextureLoader.load(
     url,
     (tex) => {
       tex.colorSpace = THREE.SRGBColorSpace;
-      tex.magFilter = THREE.LinearFilter;
-      tex.minFilter = THREE.LinearFilter;
       entry.texture = tex;
       entry.aspect = tex.image.width / tex.image.height;
       entry.ready = true;
-      console.log('[Sofia] OK', url, `${tex.image.width}x${tex.image.height}`);
+      console.log('[Sofia] carregou', url);
       entry.pending.forEach((fn) => fn());
       entry.pending.length = 0;
     },
     undefined,
     () => {
-      console.error(`[Sofia] FALHOU - não encontrei ${url} - Verifique se o arquivo existe no GitHub`);
-      const fallback = createPlaceholderTexture(key);
-      entry.texture = fallback;
-      entry.aspect = 1;
-      entry.ready = true;
-      entry.pending.forEach((fn) => fn());
-      entry.pending.length = 0;
+      console.error(`[Sofia] não encontrei ${url}`);
     }
   );
   return entry;
 }
-
 function applyFrameToSprite(group, entry) {
   const sprite = group.userData.sprite;
-  if (!sprite ||!entry.texture) return;
+  if (!entry.texture) return;
   sprite.material.map = entry.texture;
   sprite.material.needsUpdate = true;
-  sprite.material.color.set(0xffffff);
   const h = CHARACTER_TARGET_HEIGHT;
   const w = h * entry.aspect;
   sprite.scale.set(w * group.userData.facing, h, 1);
   sprite.visible = true;
 }
-
 function setSpriteFrame(group, state) {
   if (group.userData.currentState === state) return;
   group.userData.currentState = state;
   const entry = loadCharacterFrame(group.userData.costume, state);
-  if (entry.ready) {
-    applyFrameToSprite(group, entry);
-  } else {
-    entry.pending.push(() => {
-      if (group.userData.currentState === state) applyFrameToSprite(group, entry);
-    });
-  }
+  if (entry.ready) applyFrameToSprite(group, entry);
+  else entry.pending.push(() => { if (group.userData.currentState === state) applyFrameToSprite(group, entry); });
 }
-
 function setSpriteFacing(group, facing) {
   if (group.userData.facing === facing) return;
   group.userData.facing = facing;
   const sprite = group.userData.sprite;
-  if (sprite) sprite.scale.x = Math.abs(sprite.scale.x) * facing;
+  sprite.scale.x = Math.abs(sprite.scale.x) * facing;
 }
-
 function createSpriteCharacter(costume, states) {
   const group = new THREE.Group();
-  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
-    transparent: true,
-    alphaTest: 0.01,
-    color: 0xffffff
-  }));
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ transparent: true, alphaTest: 0.1 }));
   sprite.center.set(0.5, 0);
-  sprite.visible = false; // esconde até carregar
   group.add(sprite);
   group.userData.sprite = sprite;
   group.userData.costume = costume;
@@ -563,11 +530,10 @@ blobShadow.position.set(0,0.02,4);
 world.add(blobShadow);
 
 /* ============================================================
-   SUPER PODER - FLORES
+   RESTO DO JOGO INTACTO
    ============================================================ */
 const flowerPowerGroup = new THREE.Group();
 world.add(flowerPowerGroup);
-
 function spawnFlowerPower(origin, direction){
   for(let i=0;i<25;i++){
     const petalMat = new THREE.MeshStandardMaterial({color: i%3===0? '#ff7eb0' : (i%3===1? '#E8C468' : '#2e7d4f'), side:THREE.DoubleSide});
@@ -584,7 +550,6 @@ function spawnFlowerPower(origin, direction){
   world.add(flash);
   setTimeout(()=>{ world.remove(flash); }, 300);
 }
-
 function updateFlowerPower(dt){
   for(let i=flowerPowerGroup.children.length-1;i>=0;i--){
     const p=flowerPowerGroup.children[i];
@@ -665,9 +630,6 @@ function setPlayerAction(kind, duration){
   },duration);
 }
 
-/* ============================================================
-   NPC "ELE"
-   ============================================================ */
 const eleGroup = new THREE.Group();
 const skinMat = new THREE.MeshStandardMaterial({ color: '#c98a5e', roughness: 0.7 });
 const shirtMat = new THREE.MeshStandardMaterial({ color: '#f4f0e6', roughness: 0.7 });
@@ -694,9 +656,6 @@ eleBoxShadow.rotation.x = -Math.PI / 2;
 eleBoxShadow.position.set(eleGroup.position.x, 0.02, eleGroup.position.z);
 world.add(eleBoxShadow);
 
-/* ============================================================
-   INTERACTABLE OBJECTS
-   ============================================================ */
 function floatBob(mesh, speed = 2, amp = 0.12) {
   mesh.userData._bobBase = mesh.position.y;
   mesh.userData._bobSpeed = speed;
@@ -807,10 +766,10 @@ interactables.push({
 });
 
 const glassDoorGroup = new THREE.Group();
-const hallWidth = ZONE.sala.x1 - ZONE.sala.x1 + (ZONE.sala.x1 - ZONE.sala.x0);
-const glassPane = new THREE.Mesh(new THREE.BoxGeometry(ZONE.sala.x1 - ZONE.sala.x0, 2.5, 0.08), MAT.vidro);
+const hallWidth = ZONE.sala.x1 - ZONE.sala.x0;
+const glassPane = new THREE.Mesh(new THREE.BoxGeometry(hallWidth, 2.5, 0.08), MAT.vidro);
 glassPane.position.set(0, 1.25, -9.9);
-const glassFrame = new THREE.Mesh(new THREE.BoxGeometry(ZONE.sala.x1 - ZONE.sala.x0 + 0.15, 2.6, 0.12), new THREE.MeshStandardMaterial({ color: '#1B4D6B', roughness: 0.5 }));
+const glassFrame = new THREE.Mesh(new THREE.BoxGeometry(hallWidth + 0.15, 2.6, 0.12), new THREE.MeshStandardMaterial({ color: '#1B4D6B', roughness: 0.5 }));
 glassFrame.position.set(0, 1.25, -9.9);
 for (let x = ZONE.sala.x0 + 1; x < ZONE.sala.x1; x += 2) {
   const mull = new THREE.Mesh(new THREE.BoxGeometry(0.08, 2.5, 0.1), glassFrame.material);
@@ -849,9 +808,6 @@ interactables.push({
   onInteract: () => { if (!state.dialogueDone) startVarandaDialogue(); },
 });
 
-/* ============================================================
-   GAME STATE
-   ============================================================ */
 const state = {
   keys: [false, false, false],
   vineCleared: false,
@@ -877,9 +833,6 @@ function toast(msg) {
   toastTimer = setTimeout(() => t.classList.remove('show'), 3200);
 }
 
-/* ============================================================
-   DIALOGUE SYSTEM
-   ============================================================ */
 let dialogueQueue = [];
 let dialogueActive = false;
 let typeInterval = null;
@@ -947,9 +900,6 @@ $('giftCloseBtn').addEventListener('click', () => {
   playEnding();
 });
 
-/* ============================================================
-   TRANSFORMATION CUTSCENE
-   ============================================================ */
 function playTransformationCutscene() {
   state.transformed = true;
   player.locked = true;
@@ -988,9 +938,6 @@ function tweenSky(duration) {
   requestAnimationFrame(step);
 }
 
-/* ============================================================
-   ENDING
-   ============================================================ */
 function playEnding() {
   player.locked = true;
   $('endingTitle').textContent = CFG.textoFinal;
@@ -1023,9 +970,6 @@ function checkMemories() {
   });
 }
 
-/* ============================================================
-   INPUT
-   ============================================================ */
 const keysDown = {};
 window.addEventListener('keydown', (e) => {
   keysDown[e.key.toLowerCase()] = true;
@@ -1074,9 +1018,6 @@ function tryInteract() {
   if (nearestInteractable &&!player.locked) nearestInteractable.onInteract();
 }
 
-/* ============================================================
-   MOVEMENT / COLLISION
-   ============================================================ */
 const moveDir = new THREE.Vector3();
 const camForward = new THREE.Vector3();
 const camRight = new THREE.Vector3();
@@ -1156,9 +1097,6 @@ function updateBobbers(t) {
   });
 }
 
-/* ============================================================
-   AUDIO
-   ============================================================ */
 const audioState = { ctx: null, playing: false, muted: false, master: null };
 function ensureAudio() {
   if (audioState.ctx) return;
@@ -1217,9 +1155,6 @@ $('soundToggle').addEventListener('click', () => {
   $('soundToggle').textContent = audioState.muted? '🔇' : '🔈';
 });
 
-/* ============================================================
-   CONTROLES ADAPTATIVOS
-   ============================================================ */
 (function setupAdaptiveControls() {
   const style = document.createElement('style');
   style.textContent = `
@@ -1262,9 +1197,7 @@ $('soundToggle').addEventListener('click', () => {
   }
 })();
 
-/* ============================================================
-   TITLE / LOADING FLOW - usa o mesmo loadingManager das sprites
-   ============================================================ */
+/* TITLE / LOADING - usa o loadingManager do topo */
 loadingManager.onProgress = (u, loaded, total) => { const el=$('loadbarFill'); if(el) el.style.width = (loaded / total * 100) + '%'; };
 loadingManager.onLoad = () => {
   $('loading').classList.add('hidden');
@@ -1277,7 +1210,7 @@ setTimeout(() => {
     if(titleEl) titleEl.classList.remove('hidden');
   }
   const bar=$('loadbarFill'); if(bar) bar.style.width='100%';
-}, 2000);
+}, 1200);
 
 $('startBtn').addEventListener('click', () => {
   $('titleScreen').classList.add('hidden');
@@ -1292,9 +1225,7 @@ if (howToBtnEl) {
   });
 }
 
-/* ============================================================
-   MAIN LOOP
-   ============================================================ */
+/* MAIN LOOP */
 const clock = new THREE.Clock();
 function animate() {
   requestAnimationFrame(animate);
