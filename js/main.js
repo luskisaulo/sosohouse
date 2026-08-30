@@ -6,7 +6,59 @@ const $ = (id) => document.getElementById(id);
 const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
 if (isTouch) document.body.classList.add('is-touch');
 
+// Classe extra pra você deixar os textos (diálogo, notas, presente, final) mais
+// compactos/enquadrados no celular. Defina ".mobile-compact" no seu style.css
+// (ex: menor font-size, mais padding lateral, position mais pra cima da tela).
+if (isTouch) {
+  ['dialogueBox', 'noteOverlay', 'giftOverlay', 'endingScreen'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('mobile-compact');
+  });
+}
+
 const loadingManager = new THREE.LoadingManager();
+
+/* ============================================================
+   LINKS DE MÍDIA — TROQUE AQUI
+   ============================================================
+   MUSIC_URL: caminho/arquivo da música de fundo (toca quando clica na vitrola).
+     - Recomendo colocar o mp3 dentro do próprio repositório, em algo como
+       assets/audio/musica.mp3, e apontar './assets/audio/musica.mp3' aqui.
+     - EVITE link direto do Google Drive: o Drive bloqueia/rate-limita
+       streaming direto via <audio> e o link de compartilhamento normal
+       não funciona (dá erro de CORS ou "download bloqueado"). Se precisar
+       mesmo usar o Drive, o formato é
+       'https://drive.google.com/uc?export=download&id=SEU_FILE_ID'
+       mas pode falhar sem aviso — GitHub/Netlify é bem mais confiável.
+     - Se deixar em branco (''), o jogo cai automaticamente numa melodia
+       gerada por código (como já era antes), sem quebrar nada.
+   PAINTING_IMAGE_URL: a foto/arte que aparece no cavalete da sala.
+   MEMORY_IMAGE_URLS: as 3 fotos dos quadros do corredor, na ordem em que
+     aparecem (esquerda, direita, esquerda).
+   ============================================================ */
+const MUSIC_URL = ''; // ex: './assets/audio/musica.mp3'
+const PAINTING_IMAGE_URL = ''; // ex: './assets/images/pintura.jpg'
+const MEMORY_IMAGE_URLS = ['', '', '']; // ex: ['./assets/images/memoria1.jpg', ...]
+
+/* ============================================================
+   SISTEMA DE SPRITES DOS PERSONAGENS (base compartilhada)
+   ============================================================ */
+const CHARACTER_SPRITE_BASE = './assets/sprites/';
+const CHARACTER_HEIGHTS = { tropical: 1.7, princess: 1.7, ele: 1.62 };
+const spriteTextureLoader = new THREE.TextureLoader(loadingManager);
+const spriteCache = {};
+
+// Carrega qualquer imagem (pintura, quadros de memória) com fallback pra
+// versão procedural caso o link esteja vazio ou o arquivo não exista ainda.
+function loadImageTextureOrFallback(url, fallbackTexture, onReady) {
+  if (!url) { onReady(fallbackTexture); return; }
+  spriteTextureLoader.load(
+    url,
+    (tex) => { tex.colorSpace = THREE.SRGBColorSpace; onReady(tex); },
+    undefined,
+    () => { console.warn('[imagem] não encontrei', url, '- usando versão padrão.'); onReady(fallbackTexture); }
+  );
+}
 
 /* ============================================================
    RENDERER / SCENE / CAMERA
@@ -249,9 +301,12 @@ const canvasTexture = canvasTex((ctx, w, h) => {
   ctx.fillStyle = '#E2A83B'; ctx.beginPath(); ctx.arc(w * 0.7, h * 0.3, 26, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = '#1E6B4F'; ctx.fillRect(20, h - 26, w - 40, 10);
 }, 128, 160);
-const paintingMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 1.15), new THREE.MeshStandardMaterial({ map: canvasTexture }));
+const paintingMaterial = new THREE.MeshStandardMaterial({ map: canvasTexture });
+const paintingMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 1.15), paintingMaterial);
 paintingMesh.position.set(0, 1.35, 0.02);
 world.add(paintingMesh);
+// Troque PAINTING_IMAGE_URL lá em cima pra usar uma imagem real aqui.
+loadImageTextureOrFallback(PAINTING_IMAGE_URL, canvasTexture, (tex) => { paintingMaterial.map = tex; paintingMaterial.needsUpdate = true; });
 
 /* ---------- CORREDOR ---------- */
 const ZONE_HALL_WIDE = { x0: ZONE.sala.x0, x1: ZONE.sala.x1, z0: ZONE.corredor.z0, z1: ZONE.corredor.z1 };
@@ -440,38 +495,52 @@ seagull(0,14,-60); seagull(6,16,-66); seagull(-8,15,-56);
 rioGroup.userData.seagulls = seagulls;
 
 /* ============================================================
-   PERSONAGEM SOFIA - CORREÇÃO FINAL PARA SEU REPO FLAT
-   Seus arquivos são: assets/sprites/tropical_idle.png etc.
+   PERSONAGEM SOFIA — sistema de sprites com direção (frente/costas/lado)
+   ============================================================
+   Como funciona agora:
+   - Pra cada estado (idle, walk1, walk2...) o jogo tenta carregar uma
+     versão direcional: costume_estado_front.png / costume_estado_back.png.
+   - Se esse arquivo ainda não existir, ele cai automaticamente pro
+     arquivo padrão (costume_estado.png, o "de lado" que você já tem),
+     que continua sendo espelhado esquerda/direita como antes.
+   - Ou seja: o jogo funciona hoje sem nenhum arquivo novo, e melhora
+     sozinho assim que você for adicionando os _front/_back.
    ============================================================ */
-const CHARACTER_SPRITE_BASE = './assets/sprites/';
-const CHARACTER_TARGET_HEIGHT = 1.7;
-const spriteTextureLoader = new THREE.TextureLoader(loadingManager);
-const spriteCache = {};
-
-function loadCharacterFrame(costume, state) {
-  const cacheKey = costume + '/' + state;
+function loadCharacterFrame(costume, state, dir) {
+  dir = dir || 'side';
+  const cacheKey = `${costume}/${state}/${dir}`;
   if (spriteCache[cacheKey]) return spriteCache[cacheKey];
   const entry = { texture: null, aspect: 1, ready: false, pending: [] };
   spriteCache[cacheKey] = entry;
 
-  // CORREÇÃO: usa underline igual seus arquivos
-  const fileName = `${costume}_${state}.png`;
-  const url = CHARACTER_SPRITE_BASE + fileName;
+  const baseFile = `${costume}_${state}.png`;
+  const preferredFile = dir === 'side' ? baseFile : `${costume}_${state}_${dir}.png`;
+
+  function finish(tex) {
+    tex.colorSpace = THREE.SRGBColorSpace;
+    entry.texture = tex;
+    entry.aspect = tex.image.width / tex.image.height;
+    entry.ready = true;
+    entry.pending.forEach((fn) => fn());
+    entry.pending.length = 0;
+  }
 
   spriteTextureLoader.load(
-    url,
-    (tex) => {
-      tex.colorSpace = THREE.SRGBColorSpace;
-      entry.texture = tex;
-      entry.aspect = tex.image.width / tex.image.height;
-      entry.ready = true;
-      console.log('[Sofia] carregou', url);
-      entry.pending.forEach((fn) => fn());
-      entry.pending.length = 0;
-    },
+    CHARACTER_SPRITE_BASE + preferredFile,
+    finish,
     undefined,
     () => {
-      console.error(`[Sofia] não encontrei ${url}`);
+      if (preferredFile === baseFile) {
+        console.error('[Sprite] não encontrei', preferredFile);
+        return;
+      }
+      // Ainda não existe a versão _front/_back — usa a versão "de lado" como reserva
+      spriteTextureLoader.load(
+        CHARACTER_SPRITE_BASE + baseFile,
+        finish,
+        undefined,
+        () => console.error('[Sprite] não encontrei nem', preferredFile, 'nem', baseFile)
+      );
     }
   );
   return entry;
@@ -481,17 +550,19 @@ function applyFrameToSprite(group, entry) {
   if (!entry.texture) return;
   sprite.material.map = entry.texture;
   sprite.material.needsUpdate = true;
-  const h = CHARACTER_TARGET_HEIGHT;
+  const h = group.userData.height;
   const w = h * entry.aspect;
   sprite.scale.set(w * group.userData.facing, h, 1);
   sprite.visible = true;
 }
-function setSpriteFrame(group, state) {
-  if (group.userData.currentState === state) return;
-  group.userData.currentState = state;
-  const entry = loadCharacterFrame(group.userData.costume, state);
+function setSpriteFrame(group, state, dir) {
+  dir = dir || 'side';
+  const key = state + '|' + dir;
+  if (group.userData.currentKey === key) return;
+  group.userData.currentKey = key;
+  const entry = loadCharacterFrame(group.userData.costume, state, dir);
   if (entry.ready) applyFrameToSprite(group, entry);
-  else entry.pending.push(() => { if (group.userData.currentState === state) applyFrameToSprite(group, entry); });
+  else entry.pending.push(() => { if (group.userData.currentKey === key) applyFrameToSprite(group, entry); });
 }
 function setSpriteFacing(group, facing) {
   if (group.userData.facing === facing) return;
@@ -499,23 +570,24 @@ function setSpriteFacing(group, facing) {
   const sprite = group.userData.sprite;
   sprite.scale.x = Math.abs(sprite.scale.x) * facing;
 }
-function createSpriteCharacter(costume, states) {
+function createSpriteCharacter(costume, states, height) {
   const group = new THREE.Group();
   const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ transparent: true, alphaTest: 0.1 }));
   sprite.center.set(0.5, 0);
   group.add(sprite);
   group.userData.sprite = sprite;
   group.userData.costume = costume;
-  group.userData.currentState = null;
+  group.userData.currentKey = null;
   group.userData.facing = 1;
-  states.forEach((s) => loadCharacterFrame(costume, s));
+  group.userData.height = height || CHARACTER_HEIGHTS[costume] || 1.7;
+  states.forEach((s) => loadCharacterFrame(costume, s, 'side'));
   return group;
 }
 
 const sofiaTropical = createSpriteCharacter('tropical', ['idle', 'walk1', 'walk2', 'attack', 'shock']);
 const sofiaPrincess = createSpriteCharacter('princess', ['idle', 'walk1', 'walk2', 'shock', 'celebrate']);
-setSpriteFrame(sofiaTropical, 'idle');
-setSpriteFrame(sofiaPrincess, 'idle');
+setSpriteFrame(sofiaTropical, 'idle', 'side');
+setSpriteFrame(sofiaPrincess, 'idle', 'side');
 sofiaPrincess.visible = false;
 
 const playerMesh = new THREE.Group();
@@ -587,7 +659,10 @@ const player = {
   locked: false,
   speed: 3.2,
   currentMesh: sofiaTropical,
-  moveDir: new THREE.Vector3()
+  moveDir: new THREE.Vector3(),
+  facingSmooth: new THREE.Vector3(0, 0, -1),
+  dir: 'side',       // 'side' | 'front' | 'back'
+  dirHoldTimer: 0,
 };
 
 let flowerPowerCooldown = 0;
@@ -611,43 +686,30 @@ function setPlayerAction(kind, duration){
   const mesh=player.currentMesh; if(!mesh) return;
   player.locked=true;
   if(kind==='attack'){
-    setSpriteFrame(mesh, 'attack');
+    setSpriteFrame(mesh, 'attack', 'side');
     const origin = playerMesh.position.clone().add(new THREE.Vector3(0,1.2,0));
     const dir = player.moveDir.length()>0.1? player.moveDir.clone() : new THREE.Vector3(0,0,-1);
     spawnFlowerPower(origin, dir);
   } else if(kind==='shock'){
-    setSpriteFrame(mesh, 'shock');
+    setSpriteFrame(mesh, 'shock', 'side');
     playerMesh.scale.y=0.9; playerMesh.position.y=-0.08;
   } else if(kind==='celebrate'){
-    setSpriteFrame(mesh, 'celebrate');
+    setSpriteFrame(mesh, 'celebrate', 'side');
     playerMesh.position.y=0.15;
   }
   clearTimeout(setPlayerAction._t);
   setPlayerAction._t=setTimeout(()=>{
     player.locked=false;
     playerMesh.position.y=0; playerMesh.scale.y=1;
-    setSpriteFrame(mesh, 'idle');
+    setSpriteFrame(mesh, 'idle', player.dir);
   },duration);
 }
 
+/* ---------- "ELE" — agora também é personagem sprite ---------- */
+const eleSprite = createSpriteCharacter('ele', ['idle']);
+setSpriteFrame(eleSprite, 'idle', 'side');
 const eleGroup = new THREE.Group();
-const skinMat = new THREE.MeshStandardMaterial({ color: '#c98a5e', roughness: 0.7 });
-const shirtMat = new THREE.MeshStandardMaterial({ color: '#f4f0e6', roughness: 0.7 });
-const pantsMat = new THREE.MeshStandardMaterial({ color: '#2b3550', roughness: 0.7 });
-const hairMatEle = new THREE.MeshStandardMaterial({ color: '#3a2818', roughness: 0.6 });
-function localMesh(geo, mat, x, y, z) {
-  const m = new THREE.Mesh(geo, mat);
-  m.position.set(x, y, z);
-  m.castShadow = true; m.receiveShadow = true;
-  eleGroup.add(m);
-  return m;
-}
-localMesh(new THREE.CylinderGeometry(0.16, 0.19, 0.75, 10), pantsMat, 0, 0.375, 0);
-localMesh(new THREE.CylinderGeometry(0.22, 0.26, 0.8, 10), shirtMat, 0, 1.05, 0);
-localMesh(new THREE.SphereGeometry(0.22, 16, 12), skinMat, 0, 1.58, 0);
-localMesh(new THREE.SphereGeometry(0.23, 16, 12), hairMatEle, 0, 1.66, -0.03);
-localMesh(new THREE.CylinderGeometry(0.07, 0.07, 0.55, 8), shirtMat, -0.28, 1.05, 0).rotation.z = 0.25;
-localMesh(new THREE.CylinderGeometry(0.07, 0.07, 0.55, 8), shirtMat, 0.28, 1.05, 0).rotation.z = -0.25;
+eleGroup.add(eleSprite);
 eleGroup.position.set(1.1, 0, -21.2);
 eleGroup.rotation.y = Math.PI * 0.15;
 world.add(eleGroup);
@@ -677,6 +739,8 @@ box(1.0, 0.5, 0.65, MAT.wood, 5.3, 0.25, 3.4);
 interactables.push({
   pos: new THREE.Vector3(5.3, 0, 3.4), radius: 1.6, id: 'vitrola',
   label: 'Tocar a vitrola', repeatable: true,
+  // A vitrola chama toggleAmbientMusic() — ver MUSIC_URL lá no topo do arquivo
+  // pra tocar uma música de verdade em vez da melodia gerada.
   onInteract: () => { toggleAmbientMusic(); toast(audioState.playing? '🎵 Uma melodia familiar enche a sala de calor...' : 'A música parou.'); },
 });
 interactables.push({
@@ -738,12 +802,15 @@ const memoryTriggers = [];
 const hallLeftWall = ZONE.sala.x0 + 0.17, hallRightWall = ZONE.sala.x1 - 0.17;
 [[hallLeftWall, -2.5, Math.PI / 2], [hallRightWall, -4.7, -Math.PI / 2], [hallLeftWall, -7.2, Math.PI / 2]].forEach(([x, z, ry], i) => {
   const frameBox = new THREE.Mesh(new THREE.BoxGeometry(0.85, 1.05, 0.08), MAT.dourado);
-  const art = new THREE.Mesh(new THREE.PlaneGeometry(0.68, 0.88), new THREE.MeshStandardMaterial({ map: frameTex[i], emissive: '#000000' }));
+  const artMat = new THREE.MeshStandardMaterial({ map: frameTex[i], emissive: '#000000' });
+  const art = new THREE.Mesh(new THREE.PlaneGeometry(0.68, 0.88), artMat);
   art.position.z = 0.05;
   const g = new THREE.Group(); g.add(frameBox, art);
   g.position.set(x, 1.55, z);
   g.rotation.y = ry;
   world.add(g);
+  // Troque MEMORY_IMAGE_URLS[i] lá no topo pra usar as fotos de verdade aqui.
+  loadImageTextureOrFallback(MEMORY_IMAGE_URLS[i], frameTex[i], (tex) => { artMat.map = tex; artMat.needsUpdate = true; });
   memoryTriggers.push({ pos: new THREE.Vector3(x > 0? x - 2 : x + 2, 0, z), radius: 2.4, seen: false, art, text: CFG.memorias[i] });
 });
 
@@ -979,10 +1046,18 @@ window.addEventListener('keydown', (e) => {
 });
 window.addEventListener('keyup', (e) => { keysDown[e.key.toLowerCase()] = false; });
 
+/* ============================================================
+   JOYSTICK — agora rastreia o "identifier" do dedo que iniciou o toque.
+   Isso corrige o bug de o personagem "endoidar" quando você segura o
+   joystick com um dedo e toca outro botão (flor/interagir) com outro:
+   antes o código pegava sempre "e.touches[0]", que podia ser o dedo
+   ERRADO assim que um segundo dedo tocava a tela.
+   ============================================================ */
 let joyVec = { x: 0, y: 0 };
 (function setupJoystick() {
   const zone = $('joystickZone'), thumb = $('joystickThumb');
-  let active = false, startX = 0, startY = 0;
+  if (!zone || !thumb) return;
+  let active = false, startX = 0, startY = 0, touchId = null;
   const maxR = 40;
   function handleMove(clientX, clientY) {
     const dx = clientX - startX, dy = clientY - startY;
@@ -993,24 +1068,40 @@ let joyVec = { x: 0, y: 0 };
     thumb.style.top = (33 + ty) + 'px';
     joyVec.x = tx / maxR; joyVec.y = ty / maxR;
   }
+  function reset() {
+    active = false; touchId = null; joyVec.x = 0; joyVec.y = 0;
+    thumb.style.left = '33px'; thumb.style.top = '33px';
+  }
   zone.addEventListener('touchstart', (e) => {
+    if (active) return; // já tem um dedo controlando o joystick, ignora dedos extras
+    const t = e.changedTouches[0];
+    touchId = t.identifier;
     active = true;
-    const t = e.touches[0];
     startX = t.clientX; startY = t.clientY;
     e.preventDefault();
   }, { passive: false });
   zone.addEventListener('touchmove', (e) => {
     if (!active) return;
-    const t = e.touches[0];
+    let t = null;
+    for (let i = 0; i < e.changedTouches.length; i++) {
+      if (e.changedTouches[i].identifier === touchId) { t = e.changedTouches[i]; break; }
+    }
+    if (!t) return;
     handleMove(t.clientX, t.clientY);
     e.preventDefault();
   }, { passive: false });
-  zone.addEventListener('touchend', () => {
-    active = false; joyVec.x = 0; joyVec.y = 0;
-    thumb.style.left = '33px'; thumb.style.top = '33px';
-  });
+  function onTouchEnd(e) {
+    if (!active) return;
+    let ended = false;
+    for (let i = 0; i < e.changedTouches.length; i++) {
+      if (e.changedTouches[i].identifier === touchId) { ended = true; break; }
+    }
+    if (ended) reset();
+  }
+  zone.addEventListener('touchend', onTouchEnd);
+  zone.addEventListener('touchcancel', onTouchEnd);
 })();
-$('actionBtn').addEventListener('click', () => tryInteract());
+$('actionBtn') && $('actionBtn').addEventListener('click', () => tryInteract());
 
 let nearestInteractable = null;
 function tryInteract() {
@@ -1040,10 +1131,25 @@ function collidesAt(x, z) {
   }
   return false;
 }
+
+/* ============================================================
+   MOVIMENTO DO PLAYER + escolha de sprite (frente/costas/lado)
+   ============================================================
+   - DIR_SWITCH_BIAS: quanto o eixo frente/costas precisa "vencer" o eixo
+     lateral pra trocar pra sprite de frente/costas em vez de lado.
+   - DIR_HOLD_TIME: tempo mínimo antes de trocar de direção de novo —
+     é isso que elimina o "piscar" que você via antes.
+   - FACING_FLIP_THRESHOLD: só espelha o sprite de lado quando o
+     movimento lateral é claro o suficiente (evita tremedeira).
+   ============================================================ */
+const DIR_SWITCH_BIAS = 1.25;
+const DIR_HOLD_TIME = 0.15;
+const FACING_FLIP_THRESHOLD = 0.22;
+
 function updatePlayer(dt) {
   const { ix, iy } = computeInput();
   player.moving = false;
-  if (!player.locked && (ix!== 0 || iy!== 0)) {
+  if (!player.locked && (ix !== 0 || iy !== 0)) {
     camera.getWorldDirection(camForward);
     camForward.y = 0;
     if (camForward.lengthSq() < 1e-6) camForward.set(0, 0, -1); else camForward.normalize();
@@ -1055,9 +1161,30 @@ function updatePlayer(dt) {
     if (!collidesAt(nx, player.pos.z)) player.pos.x = nx;
     if (!collidesAt(player.pos.x, nz)) player.pos.z = nz;
     player.moving = true;
-    const sideDot = moveDir.dot(camRight);
-    if (Math.abs(sideDot) > 0.15) setSpriteFacing(player.currentMesh, sideDot >= 0? 1 : -1);
+
+    // suaviza a direção só pra decidir o sprite (não afeta o movimento real)
+    player.facingSmooth.lerp(moveDir, 0.25);
+    if (player.facingSmooth.lengthSq() > 0.0001) player.facingSmooth.normalize();
+
+    const forwardDot = player.facingSmooth.dot(camForward); // >0 = indo pra longe da câmera (de costas)
+    const sideDot = player.facingSmooth.dot(camRight);
+
+    let desiredDir = 'side';
+    if (Math.abs(forwardDot) > Math.abs(sideDot) * DIR_SWITCH_BIAS) {
+      desiredDir = forwardDot > 0 ? 'back' : 'front';
+    }
+    if (player.dirHoldTimer > 0) player.dirHoldTimer -= dt;
+    if (desiredDir !== player.dir && player.dirHoldTimer <= 0) {
+      player.dir = desiredDir;
+      player.dirHoldTimer = DIR_HOLD_TIME;
+    }
+    if (player.dir === 'side' && Math.abs(sideDot) > FACING_FLIP_THRESHOLD) {
+      setSpriteFacing(player.currentMesh, sideDot >= 0 ? 1 : -1);
+    }
+  } else if (player.dirHoldTimer > 0) {
+    player.dirHoldTimer -= dt;
   }
+
   playerMesh.position.set(player.pos.x, 0, player.pos.z);
   blobShadow.position.set(player.pos.x, 0.02, player.pos.z);
 
@@ -1065,10 +1192,10 @@ function updatePlayer(dt) {
     if (player.moving) {
       player.animTimer += dt;
       const frame = Math.floor(player.animTimer / WALK_FRAME_TIME) % 2 === 0? 'walk1' : 'walk2';
-      setSpriteFrame(player.currentMesh, frame);
+      setSpriteFrame(player.currentMesh, frame, player.dir);
     } else {
       player.animTimer = 0;
-      setSpriteFrame(player.currentMesh, 'idle');
+      setSpriteFrame(player.currentMesh, 'idle', player.dir);
     }
   }
 
@@ -1088,6 +1215,8 @@ function updatePlayer(dt) {
   } else {
     promptEl.classList.remove('show');
   }
+  const mcInteractBtn = $('mcInteractBtn');
+  if (mcInteractBtn) mcInteractBtn.classList.toggle('mc-btn--active', !!(best && !player.locked));
 }
 
 function updateBobbers(t) {
@@ -1097,7 +1226,11 @@ function updateBobbers(t) {
   });
 }
 
+/* ============================================================
+   ÁUDIO — música de vitrola (real, se configurada) + sfx sintetizado
+   ============================================================ */
 const audioState = { ctx: null, playing: false, muted: false, master: null };
+let bgMusic = null;
 function ensureAudio() {
   if (audioState.ctx) return;
   const Ctx = window.AudioContext || window.webkitAudioContext;
@@ -1105,6 +1238,12 @@ function ensureAudio() {
   audioState.master = audioState.ctx.createGain();
   audioState.master.gain.value = audioState.muted? 0 : 0.5;
   audioState.master.connect(audioState.ctx.destination);
+  if (MUSIC_URL) {
+    bgMusic = new Audio(MUSIC_URL);
+    bgMusic.loop = true;
+    bgMusic.volume = 0.5;
+    bgMusic.muted = audioState.muted;
+  }
 }
 function chime() {
   ensureAudio();
@@ -1123,16 +1262,21 @@ function chime() {
 let ambientNodes = [];
 function toggleAmbientMusic() {
   ensureAudio();
-  const ctx = audioState.ctx;
+  if (bgMusic && !bgMusic.error) {
+    if (audioState.playing) { bgMusic.pause(); audioState.playing = false; }
+    else { bgMusic.play().catch(() => {}); audioState.playing = true; }
+    return;
+  }
+  // Sem MUSIC_URL (ou arquivo não encontrado): melodia gerada como reserva
   if (audioState.playing) {
     ambientNodes.forEach((n) => { try { n.stop(); } catch (e) {} });
     ambientNodes = []; audioState.playing = false; return;
   }
   audioState.playing = true;
+  const ctx = audioState.ctx;
   const notes = [261.6, 329.6, 392.0, 440.0, 523.3, 392.0, 329.6, 293.7];
   const noteLen = 0.85;
   const bassGain = ctx.createGain(); bassGain.gain.value = 0.09; bassGain.connect(audioState.master);
-  const leadGain = ctx.createGain(); leadGain.gain.value = 0.06; leadGain.connect(audioState.master);
   let step = 0;
   function scheduleLoop() {
     if (!audioState.playing) return;
@@ -1152,9 +1296,13 @@ $('soundToggle').addEventListener('click', () => {
   ensureAudio();
   audioState.muted =!audioState.muted;
   audioState.master.gain.value = audioState.muted? 0 : 0.5;
+  if (bgMusic) bgMusic.muted = audioState.muted;
   $('soundToggle').textContent = audioState.muted? '🔇' : '🔈';
 });
 
+/* ============================================================
+   CONTROLES ADAPTATIVOS (PC x CELULAR)
+   ============================================================ */
 (function setupAdaptiveControls() {
   const style = document.createElement('style');
   style.textContent = `
@@ -1166,10 +1314,15 @@ $('soundToggle').addEventListener('click', () => {
       box-shadow: 0 3px 0 rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.25); }
    .mc-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,0.35); background: rgba(0,0,0,0.55); }
    .mc-btn--flower { border-color: #ff9ec7; }
+   .mc-btn--active { border-color: #ffe6b0; box-shadow: 0 0 0 3px rgba(255,230,176,0.35), 0 3px 0 rgba(0,0,0,0.35); }
+    #joystickZone { touch-action: none; }
     #pcHint { position: fixed; left: 18px; bottom: 18px; z-index: 40; font: 12px/1.4 system-ui, sans-serif;
       color: #fff; background: rgba(0,0,0,0.35); padding: 6px 10px; border-radius: 8px; letter-spacing: 0.2px; }
     body:not(.is-touch) #mcActionButtons { display: none!important; }
     body.is-touch #pcHint { display: none!important; }
+    /* Qualquer elemento marcado como "pc-only"/"touch-only" no HTML respeita isso automaticamente */
+    body.is-touch.pc-only, body.is-touch .pc-only { display: none!important; }
+    body:not(.is-touch) .touch-only { display: none!important; }
   `;
   document.head.appendChild(style);
 
@@ -1183,9 +1336,9 @@ $('soundToggle').addEventListener('click', () => {
       <div class="mc-btn" id="mcInteractBtn" aria-label="Interagir">✋</div>
     `;
     document.body.appendChild(wrap);
-    $('flowerBtn').addEventListener('touchstart', (e) => { e.preventDefault(); triggerFlowerBurst(); }, { passive: false });
+    $('flowerBtn').addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); triggerFlowerBurst(); }, { passive: false });
     $('flowerBtn').addEventListener('click', () => triggerFlowerBurst());
-    $('mcInteractBtn').addEventListener('touchstart', (e) => { e.preventDefault(); tryInteract(); }, { passive: false });
+    $('mcInteractBtn').addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); tryInteract(); }, { passive: false });
     $('mcInteractBtn').addEventListener('click', () => tryInteract());
     const oldActionBtn = $('actionBtn');
     if (oldActionBtn) oldActionBtn.style.display = 'none';
