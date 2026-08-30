@@ -36,7 +36,7 @@ const loadingManager = new THREE.LoadingManager();
    MEMORY_IMAGE_URLS: as 3 fotos dos quadros do corredor, na ordem em que
      aparecem (esquerda, direita, esquerda).
    ============================================================ */
-const MUSIC_URL = ''; // ex: './assets/audio/musica.mp3'
+const MUSIC_URL = './assets/sprites/audio/music/OUTRA%20VIDA%20ARMANDINHO.mp3';
 const PAINTING_IMAGE_URL = ''; // ex: './assets/images/pintura.jpg'
 const MEMORY_IMAGE_URLS = ['', '', '']; // ex: ['./assets/images/memoria1.jpg', ...]
 
