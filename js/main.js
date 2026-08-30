@@ -535,7 +535,7 @@ function loadCharacterFrame(costume, state, dir) {
     undefined,
     () => {
       if (preferredFile === baseFile) {
-        console.error('[Sprite] não encontrei', preferredFile);
+        console.error('[Sprite] 404 — não encontrei:', CHARACTER_SPRITE_BASE + preferredFile, '(confira nome/maiúsculas exatas do arquivo no repositório)');
         return;
       }
       // Ainda não existe a versão _front/_back — usa a versão "de lado" como reserva
@@ -543,7 +543,7 @@ function loadCharacterFrame(costume, state, dir) {
         CHARACTER_SPRITE_BASE + baseFile,
         finish,
         undefined,
-        () => console.error('[Sprite] não encontrei nem', preferredFile, 'nem', baseFile)
+        () => console.error('[Sprite] 404 — não encontrei nenhuma das duas:', CHARACTER_SPRITE_BASE + preferredFile, 'nem', CHARACTER_SPRITE_BASE + baseFile)
       );
     }
   );
@@ -578,6 +578,7 @@ function createSpriteCharacter(costume, states, height) {
   const group = new THREE.Group();
   const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ transparent: true, alphaTest: 0.1 }));
   sprite.center.set(0.5, 0);
+  sprite.visible = false; // some invisível até a textura carregar (evita o "quadrado branco")
   group.add(sprite);
   group.userData.sprite = sprite;
   group.userData.costume = costume;
