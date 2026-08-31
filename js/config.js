@@ -2,7 +2,7 @@
 // CONFIGURAÇÕES DO JOGO — edite aqui para personalizar
 // ============================================================
 window.GAME_CONFIG = {
-  tituloJogo: "A Princesa de Santa Teresa",
+  tituloJogo: "Soso a Princesa de Santa Teresa",
   nomeEla: "Você", // como o jogo se refere à protagonista (2ª pessoa)
   nomeEle: "Ele",  // nome exibido nas falas do namorado
 
@@ -11,7 +11,7 @@ window.GAME_CONFIG = {
     { falante: "ele", texto: "Você conseguiu passar por todas as fases..." },
     { falante: "ela", texto: "O que é tudo isso? Uma casa inteira em Santa Teresa só pra mim?" },
     { falante: "ele", texto: "Você sempre mereceu um reino inteiro. Mas, como bons desenvolvedores da nossa própria história, a gente tem que começar pela Fase 1." },
-    { falante: "ele", texto: "Feliz aniversário, meu amor. Cada linha de código, cada modelo 3D e cada pedacinho desse mundo foram feitos pensando em você." }
+    { falante: "ele", texto: "Feliz aniversário, meu amor. Cada linha de código, cada detalhe e cada pedacinho desse mundo foram feitos pensando em você." }
   ],
 
   mensagemPresente: [
@@ -28,7 +28,7 @@ window.GAME_CONFIG = {
 
   memorias: [
     "O dia em que se conheceram.",
-    "Uma viagem inesquecível que vocês fizeram juntos.",
-    "Aquela piada interna que só vocês dois entendem."
+    "Uma viagem inesquecível que vocês faram juntos.",
+    "Aqueles momentos que sao mais que especiais."
   ]
 };
