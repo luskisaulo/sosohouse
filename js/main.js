@@ -6,6 +6,25 @@ const $ = (id) => document.getElementById(id);
 const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
 if (isTouch) document.body.classList.add('is-touch');
 
+/* ============================================================
+   ██  DETECÇÃO DE PERFORMANCE MOBILE  ██
+   ============================================================
+   Em celulares (principalmente Android médio/entrada) o jogo travava
+   porque estava usando a mesma qualidade gráfica do PC: sombras em
+   2048x2048, pixelRatio até 2x, dezenas de PointLights (cada uma é
+   cara), e cenário carioca cheio de objetos. Esse bloco decide, ANTES
+   de criar qualquer coisa, um "perfil" mais leve pro celular.
+   ============================================================ */
+const IS_MOBILE = isTouch && Math.min(window.innerWidth, window.innerHeight) < 900;
+const GFX = {
+  pixelRatioCap: IS_MOBILE ? 1.5 : 2,
+  shadowMapSize: IS_MOBILE ? 1024 : 2048,
+  shadowsEnabled: !IS_MOBILE, // sombras dinâmicas desligadas no celular (maior ganho de FPS)
+  fogFar: IS_MOBILE ? 60 : 95,
+  starCount: IS_MOBILE ? 90 : 260,
+  maxDt: IS_MOBILE ? 0.033 : 0.05, // trava o passo de física em ~30fps mínimo no celular
+};
+
 // Classe extra pra você deixar os textos (diálogo, notas, presente, final) mais
 // compactos/enquadrados no celular. Defina ".mobile-compact" no seu style.css
 // (ex: menor font-size, mais padding lateral, position mais pra cima da tela).
@@ -55,18 +74,6 @@ const MEMORY_IMAGE_URLS = [
 
 /* ============================================================
    LINKS DE ÁUDIO — TROQUE AQUI
-   ============================================================
-   MUSIC_URL: caminho/arquivo da música de fundo (toca quando clica na vitrola).
-     - Recomendo colocar o mp3 dentro do próprio repositório, em algo como
-       assets/audio/musica.mp3, e apontar './assets/audio/musica.mp3' aqui.
-     - EVITE link direto do Google Drive: o Drive bloqueia/rate-limita
-       streaming direto via <audio> e o link de compartilhamento normal
-       não funciona (dá erro de CORS ou "download bloqueado"). Se precisar
-       mesmo usar o Drive, o formato é
-       'https://drive.google.com/uc?export=download&id=SEU_FILE_ID'
-       mas pode falhar sem aviso — GitHub/Netlify é bem mais confiável.
-     - Se deixar em branco (''), o jogo cai automaticamente numa melodia
-       gerada por código (como já era antes), sem quebrar nada.
    ============================================================ */
 const MUSIC_URL = './assets/sprites/audio/music/OUTRA%20VIDA%20ARMANDINHO.mp3';
 
@@ -75,15 +82,9 @@ const MUSIC_URL = './assets/sprites/audio/music/OUTRA%20VIDA%20ARMANDINHO.mp3';
    ============================================================ */
 const CHARACTER_SPRITE_BASE = './assets/sprites/';
 const CHARACTER_HEIGHTS = { tropical: 1.7, princess: 1.7, ele: 1.62 };
-// IMPORTANTE: este loader NÃO usa o loadingManager de propósito.
-// Sprites direcionais (_front/_back) são carregados sob demanda, durante o
-// jogo — se estivessem ligados ao loadingManager, cada carregamento novo
-// reativaria o "onLoad" dele e reabriria a tela de título no meio do jogo.
 const spriteTextureLoader = new THREE.TextureLoader();
 const spriteCache = {};
 
-// Carrega qualquer imagem (pintura, quadros de memória) com fallback pra
-// versão procedural caso o link esteja vazio ou o arquivo não exista ainda.
 function loadImageTextureOrFallback(url, fallbackTexture, onReady) {
   if (!url) { onReady(fallbackTexture); return; }
   spriteTextureLoader.load(
@@ -96,23 +97,48 @@ function loadImageTextureOrFallback(url, fallbackTexture, onReady) {
 
 /* ============================================================
    RENDERER / SCENE / CAMERA
+   ============================================================
+   ██  CORREÇÃO DE TELA CORTADA NO CELULAR  ██
+   O "fica cortado" no celular normalmente é a barra de endereço /
+   navegação do navegador mudando window.innerHeight sem disparar um
+   "resize" confiável, e o CSS 100vh não acompanhar essa mudança. Aqui
+   usamos window.visualViewport (quando disponível), que reflete o
+   tamanho REAL visível da tela, e recalculamos sempre que ela muda
+   (abrir teclado, esconder barra do navegador, rotacionar etc).
    ============================================================ */
 const app = $('app');
-const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.shadowMap.enabled = true;
+const renderer = new THREE.WebGLRenderer({ antialias: !IS_MOBILE, alpha: false, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, GFX.pixelRatioCap));
+renderer.shadowMap.enabled = GFX.shadowsEnabled;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 app.appendChild(renderer.domElement);
+
+function getViewportSize() {
+  if (window.visualViewport) {
+    return { w: window.visualViewport.width, h: window.visualViewport.height };
+  }
+  return { w: window.innerWidth, h: window.innerHeight };
+}
+
+function resizeRenderer() {
+  const { w, h } = getViewportSize();
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h, true);
+  // Corrige a altura real do container em mobile (evita corte pela barra do navegador)
+  app.style.width = w + 'px';
+  app.style.height = h + 'px';
+}
 
 const scene = new THREE.Scene();
 const skyDay = new THREE.Color('#f6c98a');
 const skyDusk = new THREE.Color('#3a2452');
 scene.background = skyDay.clone();
-scene.fog = new THREE.Fog(skyDay.getHex(), 30, 95);
+scene.fog = new THREE.Fog(skyDay.getHex(), 30, GFX.fogFar);
 
-const camera = new THREE.PerspectiveCamera(38, window.innerWidth / window.innerHeight, 0.1, 300);
+const initialSize = getViewportSize();
+const camera = new THREE.PerspectiveCamera(38, initialSize.w / initialSize.h, 0.1, 300);
 camera.position.set(14, 13, 17);
 
 const controls = new OrbitControls(camera, renderer.domElement);
@@ -126,11 +152,13 @@ controls.maxPolarAngle = THREE.MathUtils.degToRad(72);
 controls.target.set(0, 1.2, 4);
 controls.update();
 
-window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-});
+resizeRenderer();
+window.addEventListener('resize', resizeRenderer);
+window.addEventListener('orientationchange', () => setTimeout(resizeRenderer, 200));
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', resizeRenderer);
+  window.visualViewport.addEventListener('scroll', resizeRenderer);
+}
 
 /* ============================================================
    LIGHTING
@@ -140,8 +168,8 @@ scene.add(hemi);
 
 const sun = new THREE.DirectionalLight('#ffb852', 1.15);
 sun.position.set(-14, 18, 10);
-sun.castShadow = true;
-sun.shadow.mapSize.set(2048, 2048);
+sun.castShadow = GFX.shadowsEnabled;
+sun.shadow.mapSize.set(GFX.shadowMapSize, GFX.shadowMapSize);
 sun.shadow.camera.left = -28; sun.shadow.camera.right = 28;
 sun.shadow.camera.top = 28; sun.shadow.camera.bottom = -28;
 sun.shadow.camera.near = 1; sun.shadow.camera.far = 70;
@@ -238,21 +266,21 @@ function addCollider(minX, maxX, minZ, maxZ) { colliders.push({ minX, maxX, minZ
 function box(w, h, d, mat, x, y, z, ry = 0) {
   const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
   m.position.set(x, y, z); m.rotation.y = ry;
-  m.castShadow = true; m.receiveShadow = true;
+  m.castShadow = GFX.shadowsEnabled; m.receiveShadow = GFX.shadowsEnabled;
   world.add(m);
   return m;
 }
 function cyl(rt, rb, h, mat, x, y, z, radial = 12) {
   const m = new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, h, radial), mat);
   m.position.set(x, y, z);
-  m.castShadow = true; m.receiveShadow = true;
+  m.castShadow = GFX.shadowsEnabled; m.receiveShadow = GFX.shadowsEnabled;
   world.add(m);
   return m;
 }
 function sph(r, mat, x, y, z) {
   const m = new THREE.Mesh(new THREE.SphereGeometry(r, 16, 12), mat);
   m.position.set(x, y, z);
-  m.castShadow = true; m.receiveShadow = true;
+  m.castShadow = GFX.shadowsEnabled; m.receiveShadow = GFX.shadowsEnabled;
   world.add(m);
   return m;
 }
@@ -268,7 +296,7 @@ const ZONE = {
 function floorSlab(zone, mat, y = 0) {
   const w = zone.x1 - zone.x0, d = zone.z1 - zone.z0;
   const m = box(w, 0.3, d, mat, (zone.x0 + zone.x1) / 2, y - 0.15, (zone.z0 + zone.z1) / 2);
-  m.receiveShadow = true;
+  m.receiveShadow = GFX.shadowsEnabled;
   return m;
 }
 function sideWalls(zone, mat, h = 2.6) {
@@ -297,7 +325,7 @@ function pottedPlant(x, z, scale = 1) {
     const leaf = new THREE.Mesh(new THREE.ConeGeometry(0.14 * scale, 0.9 * scale, 5), i % 2? MAT.leaf : MAT.leafDark);
     leaf.position.set((Math.random() - 0.5) * 0.3 * scale, 0.75 * scale, (Math.random() - 0.5) * 0.3 * scale);
     leaf.rotation.z = (Math.random() - 0.5) * 0.6;
-    leaf.castShadow = true;
+    leaf.castShadow = GFX.shadowsEnabled;
     g.add(leaf);
   }
   g.position.set(x, 0.4 * scale, z);
@@ -329,15 +357,6 @@ for (let i = 0; i < 10; i++) box(0.14, 0.4, 0.28, i % 3 === 0? MAT.turquesa : (i
 function easelLeg(x, z, rz) { const l = box(0.07, 1.5, 0.07, MAT.wood, x, 0.75, z); l.rotation.z = rz; return l; }
 easelLeg(0, 0, 0.18); easelLeg(-0.55, 0.35, -0.22); easelLeg(0.55, 0.35, -0.22);
 
-/* ------------------------------------------------------------
-   ██  PINTURA DO CAVALETE (usa PAINTING_IMAGE_URL lá em cima)  ██
-   ------------------------------------------------------------
-   paintingFallbackCanvasEl é a versão "desenhada por código" que aparece
-   enquanto sofiagatinha.jpeg não carrega (ou se o link estiver errado).
-   Guardamos esse <canvas> à parte (em vez de usar o helper canvasTex)
-   só pra poder gerar um data-URL dele e usar no pop-up estilo Polaroid
-   quando o link real ainda não existir.
-   ------------------------------------------------------------ */
 const paintingFallbackCanvasEl = document.createElement('canvas');
 paintingFallbackCanvasEl.width = 128; paintingFallbackCanvasEl.height = 160;
 (function drawPaintingFallback(ctx, w, h) {
@@ -353,7 +372,6 @@ const paintingMaterial = new THREE.MeshStandardMaterial({ map: canvasTexture });
 const paintingMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 1.15), paintingMaterial);
 paintingMesh.position.set(0, 1.35, 0.02);
 world.add(paintingMesh);
-// Troque PAINTING_IMAGE_URL lá em cima pra usar uma imagem real aqui.
 loadImageTextureOrFallback(PAINTING_IMAGE_URL, canvasTexture, (tex) => { paintingMaterial.map = tex; paintingMaterial.needsUpdate = true; });
 
 /* ---------- CORREDOR ---------- */
@@ -364,12 +382,17 @@ for (let z = -9; z <= -2; z += 3.5) {
   box(0.3, 2.5, 0.3, MAT.dourado, ZONE.corredor.x0, 1.25, z);
   box(0.3, 2.5, 0.3, MAT.dourado, ZONE.corredor.x1, 1.25, z);
 }
-for (let z = -9; z < -1; z += 2.5) {
+// Em celular, cada PointLight custa caro (recalcula luz por pixel). Reduzimos
+// a densidade e usamos objetos "sem sombra" pra aliviar o processamento.
+const HALL_LIGHT_STEP = IS_MOBILE ? 5 : 2.5;
+for (let z = -9; z < -1; z += HALL_LIGHT_STEP) {
   [ZONE.sala.x0, ZONE.sala.x1].forEach((x) => {
     const s = sph(0.1, new THREE.MeshStandardMaterial({ color: '#ffdca0', emissive: '#ffb852', emissiveIntensity: 1.4 }), x + (x < 0? 0.3 : -0.3), 2.1, z);
-    const pl = new THREE.PointLight('#ffb852', 4, 5);
-    pl.position.copy(s.position);
-    world.add(pl);
+    if (!IS_MOBILE) {
+      const pl = new THREE.PointLight('#ffb852', 4, 5);
+      pl.position.copy(s.position);
+      world.add(pl);
+    }
   });
 }
 
@@ -390,7 +413,7 @@ for (let x = ZONE.varanda.x0; x <= ZONE.varanda.x1; x += 0.55) {
 const railTop = new THREE.Mesh(new THREE.BoxGeometry(ZONE.varanda.x1 - ZONE.varanda.x0, 0.08, 0.1), MAT.branco);
 railTop.position.set(0, 1.05, ZONE.varanda.z0 + 0.15);
 railGroup.add(railTop);
-railGroup.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+railGroup.traverse((o) => { if (o.isMesh) { o.castShadow = GFX.shadowsEnabled; o.receiveShadow = GFX.shadowsEnabled; } });
 world.add(railGroup);
 addCollider(ZONE.varanda.x0, ZONE.varanda.x1, ZONE.varanda.z0 - 0.3, ZONE.varanda.z0 + 0.1);
 [[-6.6, -11.2], [6.6, -11.2], [-6.6, -21.8], [6.6, -21.8]].forEach(([x, z]) => cyl(0.12, 0.14, 2.6, MAT.wood, x, 1.3, z));
@@ -412,7 +435,10 @@ function stringLights(x0, z0, x1, z1, sag = 0.55, count = 9) {
     const b = new THREE.Mesh(new THREE.SphereGeometry(0.055, 8, 6), bulbMat);
     b.position.copy(p).y -= 0.05;
     world.add(b);
-    if (i % 3 === 0) {
+    // Luzes pontuais das lâmpadas de varanda: no celular mantemos só uma
+    // fração pra não empilhar dezenas de PointLights (principal causa de
+    // travamento nessa área do jogo).
+    if (i % 3 === 0 && !IS_MOBILE) {
       const pl = new THREE.PointLight('#ffb852', 1.6, 4);
       pl.position.copy(b.position);
       world.add(pl);
@@ -438,13 +464,13 @@ box(ZONE.sala.x1 - ZONE.sala.x0 - 3, 0.06, 0.5, MAT.dourado, 0, 0.02, ZONE.sala.
 const rioGroup = new THREE.Group();
 world.add(rioGroup);
 const bigGround = new THREE.Mesh(new THREE.PlaneGeometry(500,500), new THREE.MeshStandardMaterial({color:'#1d4a2e', roughness:1}));
-bigGround.rotation.x=-Math.PI/2; bigGround.position.y=-0.35; bigGround.receiveShadow=true;
+bigGround.rotation.x=-Math.PI/2; bigGround.position.y=-0.35; bigGround.receiveShadow=GFX.shadowsEnabled;
 rioGroup.add(bigGround);
 const RUA_Z_CENTRO = -78;
 const RUA_Z_METADE = 45;
 const streetMat = new THREE.MeshStandardMaterial({color:'#6a6a6a', roughness:0.95});
 const street = new THREE.Mesh(new THREE.PlaneGeometry(10, RUA_Z_METADE * 2), streetMat);
-street.rotation.x=-Math.PI/2; street.position.set(0,-0.28,RUA_Z_CENTRO); street.receiveShadow=true;
+street.rotation.x=-Math.PI/2; street.position.set(0,-0.28,RUA_Z_CENTRO); street.receiveShadow=GFX.shadowsEnabled;
 rioGroup.add(street);
 const railMat = new THREE.MeshStandardMaterial({color:'#2a2a2a', metalness:0.7, roughness:0.3});
 for(let side of [-1.4,1.4]){
@@ -458,16 +484,16 @@ const tramRoof = new THREE.Mesh(new THREE.BoxGeometry(1.9,0.15,3.3), new THREE.M
 tramRoof.position.y=1.2; tramGroup.add(tramRoof);
 for(let i=0;i<4;i++){ const wheel=new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.18,0.1,8), new THREE.MeshStandardMaterial({color:'#1a1a1a'})); wheel.rotation.z=Math.PI/2; wheel.position.set(i<2?-0.9:0.9,0.18, i%2==0? -1.0 : 1.0); tramGroup.add(wheel); }
 tramGroup.position.set(0,0,RUA_Z_CENTRO);
-tramGroup.castShadow=true;
+tramGroup.castShadow=GFX.shadowsEnabled;
 rioGroup.add(tramGroup);
 rioGroup.userData.tramGroup=tramGroup;
 rioGroup.userData.tramZCentro = RUA_Z_CENTRO;
 rioGroup.userData.tramAmplitude = RUA_Z_METADE - 5;
 
 const paoMat = new THREE.MeshStandardMaterial({color:'#4a5a6a', roughness:0.8});
-const paoBase = new THREE.Mesh(new THREE.CylinderGeometry(3.2,4.8,5,14), paoMat); paoBase.position.set(22,2.2,-58); paoBase.castShadow=true; rioGroup.add(paoBase);
-const paoTop = new THREE.Mesh(new THREE.SphereGeometry(3.4,20,16,0,Math.PI*2,0,Math.PI*0.6), paoMat); paoTop.position.set(22,6,-58); paoTop.scale.set(1,1.4,1); paoTop.castShadow=true; rioGroup.add(paoTop);
-const urca = new THREE.Mesh(new THREE.ConeGeometry(3.0,4.5,12), paoMat); urca.position.set(16,2,-54); urca.castShadow=true; rioGroup.add(urca);
+const paoBase = new THREE.Mesh(new THREE.CylinderGeometry(3.2,4.8,5,14), paoMat); paoBase.position.set(22,2.2,-58); paoBase.castShadow=GFX.shadowsEnabled; rioGroup.add(paoBase);
+const paoTop = new THREE.Mesh(new THREE.SphereGeometry(3.4,20,16,0,Math.PI*2,0,Math.PI*0.6), paoMat); paoTop.position.set(22,6,-58); paoTop.scale.set(1,1.4,1); paoTop.castShadow=GFX.shadowsEnabled; rioGroup.add(paoTop);
+const urca = new THREE.Mesh(new THREE.ConeGeometry(3.0,4.5,12), paoMat); urca.position.set(16,2,-54); urca.castShadow=GFX.shadowsEnabled; rioGroup.add(urca);
 const cableMat = new THREE.MeshStandardMaterial({color:'#1a1a1a'});
 const cableCurve = new THREE.CatmullRomCurve3([ new THREE.Vector3(0,12,-23), new THREE.Vector3(8,20,-38), new THREE.Vector3(15,18,-52), new THREE.Vector3(22,10,-58) ]);
 const cableGeo = new THREE.TubeGeometry(cableCurve, 28, 0.03, 6, false);
@@ -478,7 +504,7 @@ const bondinho2 = new THREE.Mesh(bondinhoGeo, new THREE.MeshStandardMaterial({co
 rioGroup.userData.cableCurve=cableCurve; rioGroup.userData.bondinho1=bondinho1; rioGroup.userData.bondinho2=bondinho2;
 
 const greenHillMat = new THREE.MeshStandardMaterial({color:'#1e5a3a', roughness:0.9});
-const corcovado = new THREE.Mesh(new THREE.ConeGeometry(8,10,8), greenHillMat); corcovado.position.set(-24,3.5,-72); corcovado.castShadow=true; rioGroup.add(corcovado);
+const corcovado = new THREE.Mesh(new THREE.ConeGeometry(8,10,8), greenHillMat); corcovado.position.set(-24,3.5,-72); corcovado.castShadow=GFX.shadowsEnabled; rioGroup.add(corcovado);
 const cristoBase = new THREE.Mesh(new THREE.BoxGeometry(0.4,1.5,0.4), new THREE.MeshStandardMaterial({color:'#e8e0d0'})); cristoBase.position.set(-24,10.5,-72); rioGroup.add(cristoBase);
 const cristoBraco = new THREE.Mesh(new THREE.BoxGeometry(2.0,0.25,0.25), new THREE.MeshStandardMaterial({color:'#e8e0d0'})); cristoBraco.position.set(-24,11.2,-72); rioGroup.add(cristoBraco);
 
@@ -494,26 +520,28 @@ sunGlow.position.copy(sunMesh.position); rioGroup.add(sunGlow);
 const sunLight = new THREE.PointLight('#ffb852', 2, 80); sunLight.position.copy(sunMesh.position); rioGroup.add(sunLight);
 
 const houseColors = ['#E2A83B','#D6488C','#1B4D6B','#B85A3C','#1E6B4F','#f4ede0','#ff7eb0'];
-for(let i=0;i<28;i++){
+const HOUSE_COUNT = IS_MOBILE ? 14 : 28;
+for(let i=0;i<HOUSE_COUNT;i++){
   const col = houseColors[Math.floor(Math.random()*houseColors.length)];
   const mat = new THREE.MeshStandardMaterial({color:col, roughness:0.8});
   const w=1.5+Math.random()*1.8, h=1.2+Math.random()*1.5, d=1.2+Math.random()*1.2;
   const ang=Math.random()*Math.PI*2, rad=16+Math.random()*22;
   const x=Math.cos(ang)*rad, z=Math.sin(ang)*rad -10;
   if (Math.abs(x)<9 && z>-14 && z<20) continue;
-  const house=new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mat); house.position.set(x,h/2-0.3,z); house.castShadow=true; rioGroup.add(house);
+  const house=new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mat); house.position.set(x,h/2-0.3,z); house.castShadow=GFX.shadowsEnabled; rioGroup.add(house);
   const roof=new THREE.Mesh(new THREE.ConeGeometry(w*0.7,0.6,4), new THREE.MeshStandardMaterial({color:'#8a4a3a'})); roof.position.set(x,h-0.05,z); roof.rotation.y=Math.PI/4; rioGroup.add(roof);
 }
 
 function palm(x,z,s=1){
   const trunk=new THREE.Mesh(new THREE.CylinderGeometry(0.08*s,0.12*s,2.8*s,8), new THREE.MeshStandardMaterial({color:'#5a3a2a'}));
-  trunk.position.set(x,1.4*s-0.3,z); trunk.castShadow=true; rioGroup.add(trunk);
+  trunk.position.set(x,1.4*s-0.3,z); trunk.castShadow=GFX.shadowsEnabled; rioGroup.add(trunk);
   for(let i=0;i<6;i++){
     const leaf=new THREE.Mesh(new THREE.ConeGeometry(0.16*s,1.3*s,5), new THREE.MeshStandardMaterial({color:'#2e7d4f'}));
-    leaf.position.set(x,2.9*s-0.3,z); leaf.rotation.z=(i/6)*Math.PI*2; leaf.rotation.x=0.7; leaf.castShadow=true; rioGroup.add(leaf);
+    leaf.position.set(x,2.9*s-0.3,z); leaf.rotation.z=(i/6)*Math.PI*2; leaf.rotation.x=0.7; leaf.castShadow=GFX.shadowsEnabled; rioGroup.add(leaf);
   }
 }
-for(let i=0;i<18;i++){
+const PALM_COUNT = IS_MOBILE ? 9 : 18;
+for(let i=0;i<PALM_COUNT;i++){
   const ang=Math.random()*Math.PI*2, rad=12+Math.random()*28;
   palm(Math.cos(ang)*rad, Math.sin(ang)*rad-8, 0.9+Math.random()*0.6);
 }
@@ -521,12 +549,13 @@ for(let i=0;i<18;i++){
 const umbrellaColors = ['#e63946','#f4a261','#2e7d4f','#1B4D6B','#ffcc00'];
 function beachUmbrella(x,z){
   const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.035,1.6,6), new THREE.MeshStandardMaterial({color:'#e8e0d0'}));
-  pole.position.set(x,0.4,z); pole.castShadow=true; rioGroup.add(pole);
+  pole.position.set(x,0.4,z); pole.castShadow=GFX.shadowsEnabled; rioGroup.add(pole);
   const col = umbrellaColors[Math.floor(Math.random()*umbrellaColors.length)];
   const canopy = new THREE.Mesh(new THREE.ConeGeometry(0.85,0.5,10), new THREE.MeshStandardMaterial({color:col, roughness:0.7}));
-  canopy.position.set(x,1.25,z); canopy.castShadow=true; rioGroup.add(canopy);
+  canopy.position.set(x,1.25,z); canopy.castShadow=GFX.shadowsEnabled; rioGroup.add(canopy);
 }
-for(let i=0;i<9;i++) beachUmbrella(-20+i*7+(Math.random()-0.5)*2, -62+(Math.random()-0.5)*4);
+const UMBRELLA_COUNT = IS_MOBILE ? 5 : 9;
+for(let i=0;i<UMBRELLA_COUNT;i++) beachUmbrella(-20+i*7+(Math.random()-0.5)*2, -62+(Math.random()-0.5)*4);
 
 const seagulls = [];
 function seagull(x,y,z){
@@ -544,30 +573,6 @@ rioGroup.userData.seagulls = seagulls;
 
 /* ============================================================
    PERSONAGEM SOFIA — sistema de sprites com direção (frente/costas/lado)
-   ============================================================
-   Como funciona agora:
-   - Pra cada estado (idle, walk1, walk2...) o jogo tenta carregar uma
-     versão direcional: costume_estado_front.png / costume_estado_back.png.
-   - Se esse arquivo ainda não existir, ele cai automaticamente pro
-     arquivo padrão (costume_estado.png, o "de lado" que você já tem),
-     que continua sendo espelhado esquerda/direita como antes.
-   - Ou seja: o jogo funciona hoje sem nenhum arquivo novo, e melhora
-     sozinho assim que você for adicionando os _front/_back.
-
-   ██  CORREÇÃO DO "PERSONAGEM DOIDO" (pulando/tremendo ao trocar sprite) ██
-   O problema não era arquivo faltando — é que cada PNG (idle, walk1_back,
-   walk1_front, etc.) vem com uma quantidade diferente de espaço vazio
-   (transparente) ao redor do corpo, dependendo de como cada imagem foi
-   recortada/exportada. Como o jogo antes escalava o sprite usando o
-   tamanho TOTAL do arquivo (incluindo esse espaço vazio), a Sofia mudava
-   de tamanho e "pulava" no chão toda vez que trocava de frame — é
-   exatamente o efeito tremido que aparece andando de costas no vídeo.
-   A função computeAlphaBounds() abaixo resolve isso: ela olha o PNG já
-   carregado, encontra o retângulo exato onde há pixel visível (ignora a
-   transparência ao redor) e ajusta a textura (offset/repeat) pra usar
-   SÓ esse retângulo. Resultado: não importa se um PNG tem mais ou menos
-   margem transparente — a Sofia sempre aparece do mesmo tamanho, com os
-   pés sempre grudados no chão.
    ============================================================ */
 function computeAlphaBounds(image) {
   try {
@@ -579,8 +584,6 @@ function computeAlphaBounds(image) {
     ctx.drawImage(image, 0, 0);
     const data = ctx.getImageData(0, 0, cw, ch).data;
     const ALPHA_THRESHOLD = 10;
-    // Amostra em passos pra não travar em imagens grandes — 300px de
-    // resolução de varredura é mais que suficiente pra achar a borda.
     const stepX = Math.max(1, Math.floor(cw / 300));
     const stepY = Math.max(1, Math.floor(ch / 300));
     let minX = cw, maxX = -1, minY = ch, maxY = -1;
@@ -595,17 +598,12 @@ function computeAlphaBounds(image) {
         }
       }
     }
-    if (maxX < 0) return null; // imagem inteira transparente — não dá pra recortar
-    // Uma pequena margem (em "passos" de varredura) evita cortar bordas
-    // com anti-aliasing do próprio desenho.
+    if (maxX < 0) return null;
     const padX = stepX, padY = stepY;
     minX = Math.max(0, minX - padX); minY = Math.max(0, minY - padY);
     maxX = Math.min(cw - 1, maxX + padX); maxY = Math.min(ch - 1, maxY + padY);
     return { minX, minY, maxX, maxY, imgW: cw, imgH: ch };
   } catch (err) {
-    // Se o navegador bloquear a leitura (CORS, imagem de outro domínio),
-    // simplesmente não recorta — volta pro comportamento antigo (imagem
-    // inteira) em vez de quebrar o jogo.
     console.warn('[Sprite] não consegui analisar a transparência (CORS?). Usando a imagem inteira sem recorte.', err);
     return null;
   }
@@ -623,8 +621,6 @@ function loadCharacterFrame(costume, state, dir) {
 
   function finish(tex) {
     tex.colorSpace = THREE.SRGBColorSpace;
-    // Evita "vazamento" de pixel da borda quando a gente recorta só um
-    // pedaço da textura (offset/repeat) logo abaixo.
     tex.wrapS = THREE.ClampToEdgeWrapping;
     tex.wrapT = THREE.ClampToEdgeWrapping;
     tex.minFilter = THREE.LinearFilter;
@@ -633,7 +629,6 @@ function loadCharacterFrame(costume, state, dir) {
     if (bounds) {
       const boxW = Math.max(1, bounds.maxX - bounds.minX);
       const boxH = Math.max(1, bounds.maxY - bounds.minY);
-      // offset/repeat em espaço UV (V=0 é a BASE da imagem no three.js)
       tex.offset.set(bounds.minX / bounds.imgW, 1 - bounds.maxY / bounds.imgH);
       tex.repeat.set(boxW / bounds.imgW, boxH / bounds.imgH);
       entry.aspect = boxW / boxH;
@@ -659,7 +654,6 @@ function loadCharacterFrame(costume, state, dir) {
         console.error('[Sprite] 404 — não encontrei:', CHARACTER_SPRITE_BASE + preferredFile, '(confira nome/maiúsculas exatas do arquivo no repositório)');
         return;
       }
-      // Ainda não existe a versão _front/_back — usa a versão "de lado" como reserva
       spriteTextureLoader.load(
         CHARACTER_SPRITE_BASE + baseFile,
         finish,
@@ -699,7 +693,7 @@ function createSpriteCharacter(costume, states, height) {
   const group = new THREE.Group();
   const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ transparent: true, alphaTest: 0.1 }));
   sprite.center.set(0.5, 0);
-  sprite.visible = false; // some invisível até a textura carregar (evita o "quadrado branco")
+  sprite.visible = false;
   group.add(sprite);
   group.userData.sprite = sprite;
   group.userData.costume = costume;
@@ -733,7 +727,8 @@ world.add(blobShadow);
 const flowerPowerGroup = new THREE.Group();
 world.add(flowerPowerGroup);
 function spawnFlowerPower(origin, direction){
-  for(let i=0;i<25;i++){
+  const PETAL_COUNT = IS_MOBILE ? 12 : 25;
+  for(let i=0;i<PETAL_COUNT;i++){
     const petalMat = new THREE.MeshStandardMaterial({color: i%3===0? '#ff7eb0' : (i%3===1? '#E8C468' : '#2e7d4f'), side:THREE.DoubleSide});
     const petal = new THREE.Mesh(new THREE.PlaneGeometry(0.12,0.08), petalMat);
     petal.position.copy(origin).add(new THREE.Vector3((Math.random()-0.5)*0.5, Math.random()*0.5, (Math.random()-0.5)*0.5));
@@ -743,10 +738,12 @@ function spawnFlowerPower(origin, direction){
     petal.userData.spin = (Math.random()-0.5)*10;
     flowerPowerGroup.add(petal);
   }
-  const flash = new THREE.PointLight('#ff7eb0', 8, 6);
-  flash.position.copy(origin);
-  world.add(flash);
-  setTimeout(()=>{ world.remove(flash); }, 300);
+  if (!IS_MOBILE) {
+    const flash = new THREE.PointLight('#ff7eb0', 8, 6);
+    flash.position.copy(origin);
+    world.add(flash);
+    setTimeout(()=>{ world.remove(flash); }, 300);
+  }
 }
 function updateFlowerPower(dt){
   for(let i=flowerPowerGroup.children.length-1;i>=0;i--){
@@ -762,7 +759,7 @@ function updateFlowerPower(dt){
 }
 
 const starGeo = new THREE.BufferGeometry();
-const starCount = 260;
+const starCount = GFX.starCount;
 const starPositions = new Float32Array(starCount * 3);
 for (let i = 0; i < starCount; i++) {
   const ang = Math.random() * Math.PI * 2;
@@ -787,7 +784,7 @@ const player = {
   currentMesh: sofiaTropical,
   moveDir: new THREE.Vector3(),
   facingSmooth: new THREE.Vector3(0, 0, -1),
-  dir: 'side',       // 'side' | 'front' | 'back'
+  dir: 'side',
   dirHoldTimer: 0,
 };
 
@@ -859,21 +856,17 @@ const vHorn = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.4, 12, 1, true), MAT
 vHorn.rotation.x = Math.PI * 0.65; vHorn.position.set(0.3, 0.35, 0);
 vitrolaGroup.add(vBase, vDisc, vHorn);
 vitrolaGroup.position.set(5.3, 0.53, 3.4);
-vitrolaGroup.traverse((o) => { if (o.isMesh) o.castShadow = true; });
+vitrolaGroup.traverse((o) => { if (o.isMesh) o.castShadow = GFX.shadowsEnabled; });
 world.add(vitrolaGroup);
 box(1.0, 0.5, 0.65, MAT.wood, 5.3, 0.25, 3.4);
 interactables.push({
   pos: new THREE.Vector3(5.3, 0, 3.4), radius: 1.6, id: 'vitrola',
   label: 'Tocar a vitrola', repeatable: true,
-  // A vitrola chama toggleAmbientMusic() — ver MUSIC_URL lá no topo do arquivo
-  // pra tocar uma música de verdade em vez da melodia gerada.
   onInteract: () => { toggleAmbientMusic(); toast(audioState.playing? '🎵 Uma melodia familiar enche a sala de calor...' : 'A música parou.'); },
 });
 interactables.push({
   pos: new THREE.Vector3(0, 0, 0), radius: 1.6, id: 'quadro',
   label: 'Ver a pintura', repeatable: true,
-  // Abre a pintura como uma foto Polaroid (ver showPolaroid() mais abaixo,
-  // na seção "POP-UP ESTILO POLAROID"). Usa PAINTING_IMAGE_URL lá do topo.
   onInteract: () => showPolaroid(
     paintingMaterial.map && paintingMaterial.map.image ? PAINTING_IMAGE_URL : paintingFallbackCanvasEl.toDataURL(),
     'Amo a obra de arte que é vc, voce é a nenem mais perfeita do mundo...'
@@ -913,7 +906,7 @@ for (let i = 0; i < 34; i++) {
   leaf.rotation.z = Math.random() * Math.PI;
   vineGroup.add(leaf);
 }
-vineGroup.traverse((o) => { if (o.isMesh) o.castShadow = true; });
+vineGroup.traverse((o) => { if (o.isMesh) o.castShadow = GFX.shadowsEnabled; });
 world.add(vineGroup);
 addCollider(ZONE.sala.x0, ZONE.sala.x1, -5.75, -5.25);
 interactables.push({
@@ -943,8 +936,6 @@ const hallLeftWall = ZONE.sala.x0 + 0.17, hallRightWall = ZONE.sala.x1 - 0.17;
   g.position.set(x, 1.55, z);
   g.rotation.y = ry;
   world.add(g);
-  // Troque MEMORY_IMAGE_URLS[i] lá no topo pra usar as fotos de verdade aqui
-  // (pasta assets/sprites/imagens/, arquivos memoria1.jpg / memoria2.jpg / memoria3.jpg).
   loadImageTextureOrFallback(MEMORY_IMAGE_URLS[i], frameTex[i], (tex) => { artMat.map = tex; artMat.needsUpdate = true; });
   memoryTriggers.push({ pos: new THREE.Vector3(x > 0? x - 2 : x + 2, 0, z), radius: 2.4, seen: false, art, text: CFG.memorias[i] });
 });
@@ -998,7 +989,7 @@ const bow = new THREE.Mesh(new THREE.TorusKnotGeometry(0.05, 0.02, 40, 6), MAT.d
 bow.position.y = 0.2;
 giftGroup.add(giftBase, ribbon1, ribbon2, bow);
 giftGroup.position.set(0, 0.92, -19);
-giftGroup.traverse((o) => { if (o.isMesh) o.castShadow = true; });
+giftGroup.traverse((o) => { if (o.isMesh) o.castShadow = GFX.shadowsEnabled; });
 world.add(giftGroup);
 floatBob(giftGroup, 1.2, 0.05);
 interactables.push({
@@ -1081,11 +1072,6 @@ $('noteCloseBtn').addEventListener('click', () => { $('noteOverlay').classList.r
 
 /* ============================================================
    ██  POP-UP ESTILO POLAROID (pintura da sala)  ██
-   ============================================================
-   Criado 100% por código aqui mesmo (não depende de nada novo no HTML),
-   pra abrir a foto da pintura como se fosse uma Polaroid tirada da
-   parede: cartão branco, foto meio torta, legendinha escrita embaixo.
-   Reaproveita PAINTING_IMAGE_URL / paintingFallbackCanvasEl lá de cima.
    ============================================================ */
 let polaroidOverlayEl = null, polaroidImgEl = null, polaroidCaptionEl = null;
 function ensurePolaroidOverlay() {
@@ -1243,11 +1229,7 @@ window.addEventListener('keydown', (e) => {
 window.addEventListener('keyup', (e) => { keysDown[e.key.toLowerCase()] = false; });
 
 /* ============================================================
-   JOYSTICK — agora rastreia o "identifier" do dedo que iniciou o toque.
-   Isso corrige o bug de o personagem "endoidar" quando você segura o
-   joystick com um dedo e toca outro botão (flor/interagir) com outro:
-   antes o código pegava sempre "e.touches[0]", que podia ser o dedo
-   ERRADO assim que um segundo dedo tocava a tela.
+   JOYSTICK — rastreia o "identifier" do dedo que iniciou o toque.
    ============================================================ */
 let joyVec = { x: 0, y: 0 };
 (function setupJoystick() {
@@ -1269,7 +1251,7 @@ let joyVec = { x: 0, y: 0 };
     thumb.style.left = '33px'; thumb.style.top = '33px';
   }
   zone.addEventListener('touchstart', (e) => {
-    if (active) return; // já tem um dedo controlando o joystick, ignora dedos extras
+    if (active) return;
     const t = e.changedTouches[0];
     touchId = t.identifier;
     active = true;
@@ -1330,15 +1312,6 @@ function collidesAt(x, z) {
 
 /* ============================================================
    MOVIMENTO DO PLAYER + escolha de sprite (frente/costas/lado)
-   ============================================================
-   - DIR_SWITCH_BIAS: quanto o eixo frente/costas precisa "vencer" o eixo
-     lateral pra trocar pra sprite de frente/costas em vez de lado.
-   - DIR_HOLD_TIME: tempo mínimo antes de trocar de direção de novo —
-     é isso que elimina o "piscar" que você via antes. Aumentado um pouco
-     (0.15s → 0.22s) porque, junto com o recorte de transparência lá em
-     cima, deixa a troca de sprite ainda mais estável ao andar em diagonal.
-   - FACING_FLIP_THRESHOLD: só espelha o sprite de lado quando o
-     movimento lateral é claro o suficiente (evita tremedeira).
    ============================================================ */
 const DIR_SWITCH_BIAS = 1.25;
 const DIR_HOLD_TIME = 0.22;
@@ -1360,11 +1333,10 @@ function updatePlayer(dt) {
     if (!collidesAt(player.pos.x, nz)) player.pos.z = nz;
     player.moving = true;
 
-    // suaviza a direção só pra decidir o sprite (não afeta o movimento real)
     player.facingSmooth.lerp(moveDir, 0.25);
     if (player.facingSmooth.lengthSq() > 0.0001) player.facingSmooth.normalize();
 
-    const forwardDot = player.facingSmooth.dot(camForward); // >0 = indo pra longe da câmera (de costas)
+    const forwardDot = player.facingSmooth.dot(camForward);
     const sideDot = player.facingSmooth.dot(camRight);
 
     let desiredDir = 'side';
@@ -1465,7 +1437,6 @@ function toggleAmbientMusic() {
     else { bgMusic.play().catch(() => {}); audioState.playing = true; }
     return;
   }
-  // Sem MUSIC_URL (ou arquivo não encontrado): melodia gerada como reserva
   if (audioState.playing) {
     ambientNodes.forEach((n) => { try { n.stop(); } catch (e) {} });
     ambientNodes = []; audioState.playing = false; return;
@@ -1500,27 +1471,54 @@ $('soundToggle').addEventListener('click', () => {
 
 /* ============================================================
    CONTROLES ADAPTATIVOS (PC x CELULAR)
+   ============================================================
+   ██  CORREÇÃO DO BOTÃO "✋" CORTADO PELO SELO "POWERED BY NETLIFY"  ██
+   O selo do Netlify fica fixo no canto inferior (normalmente ~38-44px
+   de altura + alguma margem) e ficava por cima/embaixo do botão de
+   interagir. Corrigido assim:
+     1) z-index bem mais alto pros nossos controles (999) — garantindo
+        que ficam SEMPRE acima de qualquer selo/overlay de terceiros.
+     2) bottom calculado com env(safe-area-inset-bottom) (notch/gesto
+        do iPhone) SOMADO a uma margem fixa de ~60px, que é o espaço
+        aproximado que o selo do Netlify ocupa — assim o botão nunca
+        fica colado nele nem escondido atrás.
+     3) touch-action: manipulation nos botões pra resposta de toque mais
+        rápida (sem o delay de ~300ms padrão do navegador em mobile).
    ============================================================ */
 (function setupAdaptiveControls() {
   const style = document.createElement('style');
   style.textContent = `
-    #mcActionButtons { position: fixed; right: 18px; bottom: 22px; display: flex; flex-direction: column; gap: 14px; z-index: 40; }
-   .mc-btn { width: 62px; height: 62px; border-radius: 14px; border: 3px solid rgba(255,255,255,0.55);
-      background: linear-gradient(180deg, rgba(60,50,45,0.55), rgba(20,16,14,0.65)); backdrop-filter: blur(2px);
-      display: flex; align-items: center; justify-content: center; font-size: 26px; color: #fff;
+    :root { --netlify-badge-clearance: 60px; }
+    #mcActionButtons {
+      position: fixed;
+      right: max(16px, env(safe-area-inset-right));
+      bottom: calc(env(safe-area-inset-bottom, 0px) + var(--netlify-badge-clearance));
+      display: flex; flex-direction: column; gap: 14px; z-index: 999;
+      pointer-events: auto;
+    }
+   .mc-btn { width: 60px; height: 60px; border-radius: 14px; border: 3px solid rgba(255,255,255,0.55);
+      background: linear-gradient(180deg, rgba(60,50,45,0.7), rgba(20,16,14,0.8)); backdrop-filter: blur(2px);
+      display: flex; align-items: center; justify-content: center; font-size: 25px; color: #fff;
       -webkit-tap-highlight-color: transparent; user-select: none; touch-action: manipulation;
       box-shadow: 0 3px 0 rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.25); }
-   .mc-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,0.35); background: rgba(0,0,0,0.55); }
+   .mc-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,0.35); background: rgba(0,0,0,0.7); }
    .mc-btn--flower { border-color: #ff9ec7; }
    .mc-btn--active { border-color: #ffe6b0; box-shadow: 0 0 0 3px rgba(255,230,176,0.35), 0 3px 0 rgba(0,0,0,0.35); }
-    #joystickZone { touch-action: none; }
+    #joystickZone {
+      touch-action: none;
+      position: fixed;
+      left: max(16px, env(safe-area-inset-left));
+      bottom: calc(env(safe-area-inset-bottom, 0px) + var(--netlify-badge-clearance));
+      z-index: 999;
+    }
+    #interactPrompt.show { z-index: 998; }
     #pcHint { position: fixed; left: 18px; bottom: 18px; z-index: 40; font: 12px/1.4 system-ui, sans-serif;
       color: #fff; background: rgba(0,0,0,0.35); padding: 6px 10px; border-radius: 8px; letter-spacing: 0.2px; }
     body:not(.is-touch) #mcActionButtons { display: none!important; }
     body.is-touch #pcHint { display: none!important; }
-    /* Qualquer elemento marcado como "pc-only"/"touch-only" no HTML respeita isso automaticamente */
     body.is-touch.pc-only, body.is-touch .pc-only { display: none!important; }
     body:not(.is-touch) .touch-only { display: none!important; }
+    body.is-touch #app, body.is-touch canvas { touch-action: none; }
   `;
   document.head.appendChild(style);
 
@@ -1566,6 +1564,7 @@ setTimeout(() => {
 $('startBtn').addEventListener('click', () => {
   $('titleScreen').classList.add('hidden');
   ensureAudio();
+  resizeRenderer();
 });
 const howToBtnEl = $('howToBtn');
 if (howToBtnEl) {
@@ -1576,11 +1575,14 @@ if (howToBtnEl) {
   });
 }
 
-/* MAIN LOOP */
+/* ============================================================
+   MAIN LOOP — trava um mínimo de FPS simulado no mobile pra evitar
+   "saltos" grandes de física quando o navegador engasga um frame.
+   ============================================================ */
 const clock = new THREE.Clock();
 function animate() {
   requestAnimationFrame(animate);
-  const dt = Math.min(0.05, clock.getDelta());
+  const dt = Math.min(GFX.maxDt, clock.getDelta());
   const t = clock.elapsedTime;
   if (flowerPowerCooldown > 0) flowerPowerCooldown = Math.max(0, flowerPowerCooldown - dt);
   updatePlayer(dt);
