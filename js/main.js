@@ -19,7 +19,42 @@ if (isTouch) {
 const loadingManager = new THREE.LoadingManager();
 
 /* ============================================================
-   LINKS DE MÍDIA — TROQUE AQUI
+   ██  IMAGENS — PINTURA DA SALA + QUADROS DE MEMÓRIA DO CORREDOR  ██
+   ============================================================
+   TUDO relacionado a essas fotos reais fica AQUI dentro. Pasta oficial
+   no repositório:  assets/sprites/imagens/
+
+   Como usar:
+   1) Suba o arquivo da foto dentro de "assets/sprites/imagens/" no GitHub
+      (mesma pasta onde já está o "sofiagatinha.jpeg").
+   2) Renomeie o arquivo EXATAMENTE como está nos comentários abaixo
+      (ou troque o texto do caminho abaixo pelo nome que você usou).
+   3) Pronto — não precisa mexer em mais nada, o jogo carrega sozinho.
+      Se o arquivo ainda não existir (ou o nome não bater), o jogo cai
+      automaticamente na versão desenhada por código, sem quebrar nada.
+
+   PAINTING_IMAGE_URL  → a foto no cavalete/pintura da sala (já configurada
+                          com "sofiagatinha.jpeg", que já está na pasta).
+   MEMORY_IMAGE_URLS   → as 3 fotos dos quadros do corredor, NA ORDEM em
+                          que aparecem andando pelo corredor:
+                            [0] quadro da esquerda (mais perto da sala)
+                            [1] quadro da direita
+                            [2] quadro da esquerda (mais perto da porta)
+                          Ainda não existem no repositório — assim que você
+                          subir "memoria1.jpg", "memoria2.jpg" e
+                          "memoria3.jpg" dentro de assets/sprites/imagens/,
+                          eles aparecem sozinhos nos quadros.
+   ============================================================ */
+const IMAGES_FOLDER = './assets/sprites/imagens/';
+const PAINTING_IMAGE_URL = IMAGES_FOLDER + 'sofiagatinha.jpeg';
+const MEMORY_IMAGE_URLS = [
+  IMAGES_FOLDER + 'memoria1.jpg', // quadro 1 do corredor (esquerda)
+  IMAGES_FOLDER + 'memoria2.jpg', // quadro 2 do corredor (direita)
+  IMAGES_FOLDER + 'memoria3.jpg', // quadro 3 do corredor (esquerda)
+];
+
+/* ============================================================
+   LINKS DE ÁUDIO — TROQUE AQUI
    ============================================================
    MUSIC_URL: caminho/arquivo da música de fundo (toca quando clica na vitrola).
      - Recomendo colocar o mp3 dentro do próprio repositório, em algo como
@@ -32,13 +67,8 @@ const loadingManager = new THREE.LoadingManager();
        mas pode falhar sem aviso — GitHub/Netlify é bem mais confiável.
      - Se deixar em branco (''), o jogo cai automaticamente numa melodia
        gerada por código (como já era antes), sem quebrar nada.
-   PAINTING_IMAGE_URL: a foto/arte que aparece no cavalete da sala.
-   MEMORY_IMAGE_URLS: as 3 fotos dos quadros do corredor, na ordem em que
-     aparecem (esquerda, direita, esquerda).
    ============================================================ */
 const MUSIC_URL = './assets/sprites/audio/music/OUTRA%20VIDA%20ARMANDINHO.mp3';
-const PAINTING_IMAGE_URL = ''; // ex: './assets/images/pintura.jpg'
-const MEMORY_IMAGE_URLS = ['', '', '']; // ex: ['./assets/images/memoria1.jpg', ...]
 
 /* ============================================================
    SISTEMA DE SPRITES DOS PERSONAGENS (base compartilhada)
@@ -298,13 +328,27 @@ for (let i = 0; i < 4; i++) box(1.6, 0.06, 0.36, MAT.terracota, 5.4, 0.35 + i * 
 for (let i = 0; i < 10; i++) box(0.14, 0.4, 0.28, i % 3 === 0? MAT.turquesa : (i % 3 === 1? MAT.magenta : MAT.esmeralda), 4.75 + i * 0.15, 1.85, 6.78);
 function easelLeg(x, z, rz) { const l = box(0.07, 1.5, 0.07, MAT.wood, x, 0.75, z); l.rotation.z = rz; return l; }
 easelLeg(0, 0, 0.18); easelLeg(-0.55, 0.35, -0.22); easelLeg(0.55, 0.35, -0.22);
-const canvasTexture = canvasTex((ctx, w, h) => {
+
+/* ------------------------------------------------------------
+   ██  PINTURA DO CAVALETE (usa PAINTING_IMAGE_URL lá em cima)  ██
+   ------------------------------------------------------------
+   paintingFallbackCanvasEl é a versão "desenhada por código" que aparece
+   enquanto sofiagatinha.jpeg não carrega (ou se o link estiver errado).
+   Guardamos esse <canvas> à parte (em vez de usar o helper canvasTex)
+   só pra poder gerar um data-URL dele e usar no pop-up estilo Polaroid
+   quando o link real ainda não existir.
+   ------------------------------------------------------------ */
+const paintingFallbackCanvasEl = document.createElement('canvas');
+paintingFallbackCanvasEl.width = 128; paintingFallbackCanvasEl.height = 160;
+(function drawPaintingFallback(ctx, w, h) {
   ctx.fillStyle = '#f4ede0'; ctx.fillRect(0, 0, w, h);
   ctx.strokeStyle = '#D6488C'; ctx.lineWidth = 6; ctx.beginPath();
   ctx.moveTo(20, h - 30); ctx.quadraticCurveTo(w / 2, 20, w - 20, h - 40); ctx.stroke();
   ctx.fillStyle = '#E2A83B'; ctx.beginPath(); ctx.arc(w * 0.7, h * 0.3, 26, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = '#1E6B4F'; ctx.fillRect(20, h - 26, w - 40, 10);
-}, 128, 160);
+})(paintingFallbackCanvasEl.getContext('2d'), 128, 160);
+const canvasTexture = new THREE.CanvasTexture(paintingFallbackCanvasEl);
+canvasTexture.colorSpace = THREE.SRGBColorSpace;
 const paintingMaterial = new THREE.MeshStandardMaterial({ map: canvasTexture });
 const paintingMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 1.15), paintingMaterial);
 paintingMesh.position.set(0, 1.35, 0.02);
@@ -509,7 +553,64 @@ rioGroup.userData.seagulls = seagulls;
      que continua sendo espelhado esquerda/direita como antes.
    - Ou seja: o jogo funciona hoje sem nenhum arquivo novo, e melhora
      sozinho assim que você for adicionando os _front/_back.
+
+   ██  CORREÇÃO DO "PERSONAGEM DOIDO" (pulando/tremendo ao trocar sprite) ██
+   O problema não era arquivo faltando — é que cada PNG (idle, walk1_back,
+   walk1_front, etc.) vem com uma quantidade diferente de espaço vazio
+   (transparente) ao redor do corpo, dependendo de como cada imagem foi
+   recortada/exportada. Como o jogo antes escalava o sprite usando o
+   tamanho TOTAL do arquivo (incluindo esse espaço vazio), a Sofia mudava
+   de tamanho e "pulava" no chão toda vez que trocava de frame — é
+   exatamente o efeito tremido que aparece andando de costas no vídeo.
+   A função computeAlphaBounds() abaixo resolve isso: ela olha o PNG já
+   carregado, encontra o retângulo exato onde há pixel visível (ignora a
+   transparência ao redor) e ajusta a textura (offset/repeat) pra usar
+   SÓ esse retângulo. Resultado: não importa se um PNG tem mais ou menos
+   margem transparente — a Sofia sempre aparece do mesmo tamanho, com os
+   pés sempre grudados no chão.
    ============================================================ */
+function computeAlphaBounds(image) {
+  try {
+    const cw = image.width, ch = image.height;
+    if (!cw || !ch) return null;
+    const canvas = document.createElement('canvas');
+    canvas.width = cw; canvas.height = ch;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    ctx.drawImage(image, 0, 0);
+    const data = ctx.getImageData(0, 0, cw, ch).data;
+    const ALPHA_THRESHOLD = 10;
+    // Amostra em passos pra não travar em imagens grandes — 300px de
+    // resolução de varredura é mais que suficiente pra achar a borda.
+    const stepX = Math.max(1, Math.floor(cw / 300));
+    const stepY = Math.max(1, Math.floor(ch / 300));
+    let minX = cw, maxX = -1, minY = ch, maxY = -1;
+    for (let y = 0; y < ch; y += stepY) {
+      const rowOffset = y * cw;
+      for (let x = 0; x < cw; x += stepX) {
+        if (data[(rowOffset + x) * 4 + 3] > ALPHA_THRESHOLD) {
+          if (x < minX) minX = x;
+          if (x > maxX) maxX = x;
+          if (y < minY) minY = y;
+          if (y > maxY) maxY = y;
+        }
+      }
+    }
+    if (maxX < 0) return null; // imagem inteira transparente — não dá pra recortar
+    // Uma pequena margem (em "passos" de varredura) evita cortar bordas
+    // com anti-aliasing do próprio desenho.
+    const padX = stepX, padY = stepY;
+    minX = Math.max(0, minX - padX); minY = Math.max(0, minY - padY);
+    maxX = Math.min(cw - 1, maxX + padX); maxY = Math.min(ch - 1, maxY + padY);
+    return { minX, minY, maxX, maxY, imgW: cw, imgH: ch };
+  } catch (err) {
+    // Se o navegador bloquear a leitura (CORS, imagem de outro domínio),
+    // simplesmente não recorta — volta pro comportamento antigo (imagem
+    // inteira) em vez de quebrar o jogo.
+    console.warn('[Sprite] não consegui analisar a transparência (CORS?). Usando a imagem inteira sem recorte.', err);
+    return null;
+  }
+}
+
 function loadCharacterFrame(costume, state, dir) {
   dir = dir || 'side';
   const cacheKey = `${costume}/${state}/${dir}`;
@@ -522,8 +623,28 @@ function loadCharacterFrame(costume, state, dir) {
 
   function finish(tex) {
     tex.colorSpace = THREE.SRGBColorSpace;
+    // Evita "vazamento" de pixel da borda quando a gente recorta só um
+    // pedaço da textura (offset/repeat) logo abaixo.
+    tex.wrapS = THREE.ClampToEdgeWrapping;
+    tex.wrapT = THREE.ClampToEdgeWrapping;
+    tex.minFilter = THREE.LinearFilter;
+
+    const bounds = computeAlphaBounds(tex.image);
+    if (bounds) {
+      const boxW = Math.max(1, bounds.maxX - bounds.minX);
+      const boxH = Math.max(1, bounds.maxY - bounds.minY);
+      // offset/repeat em espaço UV (V=0 é a BASE da imagem no three.js)
+      tex.offset.set(bounds.minX / bounds.imgW, 1 - bounds.maxY / bounds.imgH);
+      tex.repeat.set(boxW / bounds.imgW, boxH / bounds.imgH);
+      entry.aspect = boxW / boxH;
+    } else {
+      tex.offset.set(0, 0);
+      tex.repeat.set(1, 1);
+      entry.aspect = tex.image.width / tex.image.height;
+    }
+    tex.needsUpdate = true;
+
     entry.texture = tex;
-    entry.aspect = tex.image.width / tex.image.height;
     entry.ready = true;
     entry.pending.forEach((fn) => fn());
     entry.pending.length = 0;
@@ -751,7 +872,12 @@ interactables.push({
 interactables.push({
   pos: new THREE.Vector3(0, 0, 0), radius: 1.6, id: 'quadro',
   label: 'Ver a pintura', repeatable: true,
-  onInteract: () => showLines([{ falante: 'narrador', texto: 'Amo a obra de arte que é vc, voce é a nenem mais perfeita do mundo...' }]),
+  // Abre a pintura como uma foto Polaroid (ver showPolaroid() mais abaixo,
+  // na seção "POP-UP ESTILO POLAROID"). Usa PAINTING_IMAGE_URL lá do topo.
+  onInteract: () => showPolaroid(
+    paintingMaterial.map && paintingMaterial.map.image ? PAINTING_IMAGE_URL : paintingFallbackCanvasEl.toDataURL(),
+    'Amo a obra de arte que é vc, voce é a nenem mais perfeita do mundo...'
+  ),
 });
 box(1.2, 0.4, 0.7, MAT.wood, -1.6, 0.2, 3.2);
 const key1Mesh = new THREE.Group();
@@ -795,6 +921,9 @@ interactables.push({
   onInteract: () => { if (!state.vineCleared) triggerFlowerBurst(); },
 });
 
+/* ------------------------------------------------------------
+   ██  QUADROS DE MEMÓRIA DO CORREDOR (usa MEMORY_IMAGE_URLS lá em cima) ██
+   ------------------------------------------------------------ */
 const frameTex = [0, 1, 2].map((i) => canvasTex((ctx, w, h) => {
   const cols = ['#D6488C', '#1E6B4F', '#1B4D6B'];
   ctx.fillStyle = '#f4ede0'; ctx.fillRect(0, 0, w, h);
@@ -814,7 +943,8 @@ const hallLeftWall = ZONE.sala.x0 + 0.17, hallRightWall = ZONE.sala.x1 - 0.17;
   g.position.set(x, 1.55, z);
   g.rotation.y = ry;
   world.add(g);
-  // Troque MEMORY_IMAGE_URLS[i] lá no topo pra usar as fotos de verdade aqui.
+  // Troque MEMORY_IMAGE_URLS[i] lá no topo pra usar as fotos de verdade aqui
+  // (pasta assets/sprites/imagens/, arquivos memoria1.jpg / memoria2.jpg / memoria3.jpg).
   loadImageTextureOrFallback(MEMORY_IMAGE_URLS[i], frameTex[i], (tex) => { artMat.map = tex; artMat.needsUpdate = true; });
   memoryTriggers.push({ pos: new THREE.Vector3(x > 0? x - 2 : x + 2, 0, z), radius: 2.4, seen: false, art, text: CFG.memorias[i] });
 });
@@ -948,6 +1078,67 @@ function showNote(text) {
   $('noteOverlay').classList.add('show');
 }
 $('noteCloseBtn').addEventListener('click', () => { $('noteOverlay').classList.remove('show'); player.locked = false; });
+
+/* ============================================================
+   ██  POP-UP ESTILO POLAROID (pintura da sala)  ██
+   ============================================================
+   Criado 100% por código aqui mesmo (não depende de nada novo no HTML),
+   pra abrir a foto da pintura como se fosse uma Polaroid tirada da
+   parede: cartão branco, foto meio torta, legendinha escrita embaixo.
+   Reaproveita PAINTING_IMAGE_URL / paintingFallbackCanvasEl lá de cima.
+   ============================================================ */
+let polaroidOverlayEl = null, polaroidImgEl = null, polaroidCaptionEl = null;
+function ensurePolaroidOverlay() {
+  if (polaroidOverlayEl) return;
+  const style = document.createElement('style');
+  style.textContent = `
+    #polaroidOverlay { position: fixed; inset: 0; z-index: 60; display: none;
+      align-items: center; justify-content: center; background: rgba(20,12,10,0.55);
+      backdrop-filter: blur(3px); cursor: pointer; }
+    #polaroidOverlay.show { display: flex; animation: polaroidFadeIn 0.25s ease; }
+    #polaroidCard { background: #fdfaf3; padding: 18px 18px 26px; border-radius: 4px;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.45); transform: rotate(-3deg);
+      max-width: min(78vw, 380px); animation: polaroidPop 0.35s cubic-bezier(.2,1.4,.4,1); }
+    #polaroidImg { display: block; width: 100%; aspect-ratio: 4 / 5; object-fit: cover;
+      background: #e7ddc9; }
+    #polaroidCaption { margin-top: 14px; font-family: 'Segoe Script','Bradley Hand',cursive, sans-serif;
+      font-size: 17px; line-height: 1.35; color: #3a2a20; text-align: center; padding: 0 4px; }
+    #polaroidHint { margin-top: 8px; font-size: 11px; letter-spacing: 0.5px; color: #9a8d78;
+      text-align: center; text-transform: uppercase; }
+    @keyframes polaroidFadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes polaroidPop { from { opacity: 0; transform: rotate(-3deg) scale(0.85) translateY(12px); }
+      to { opacity: 1; transform: rotate(-3deg) scale(1) translateY(0); } }
+    body.mobile-compact #polaroidCard, body.is-touch #polaroidCard { max-width: 82vw; }
+  `;
+  document.head.appendChild(style);
+
+  polaroidOverlayEl = document.createElement('div');
+  polaroidOverlayEl.id = 'polaroidOverlay';
+  polaroidOverlayEl.innerHTML = `
+    <div id="polaroidCard">
+      <img id="polaroidImg" alt="Pintura" />
+      <div id="polaroidCaption"></div>
+      <div id="polaroidHint">toque para fechar</div>
+    </div>
+  `;
+  document.body.appendChild(polaroidOverlayEl);
+  polaroidImgEl = $('polaroidImg');
+  polaroidCaptionEl = $('polaroidCaption');
+  polaroidOverlayEl.addEventListener('click', closePolaroid);
+}
+function showPolaroid(imageSrc, captionText) {
+  ensurePolaroidOverlay();
+  polaroidImgEl.src = imageSrc;
+  polaroidCaptionEl.textContent = captionText;
+  polaroidOverlayEl.classList.add('show');
+  player.locked = true;
+}
+function closePolaroid() {
+  if (!polaroidOverlayEl) return;
+  polaroidOverlayEl.classList.remove('show');
+  player.locked = false;
+}
+
 function startVarandaDialogue() {
   setPlayerAction('shock', 600);
   showLines(CFG.dialogoVaranda, () => {
@@ -1143,12 +1334,14 @@ function collidesAt(x, z) {
    - DIR_SWITCH_BIAS: quanto o eixo frente/costas precisa "vencer" o eixo
      lateral pra trocar pra sprite de frente/costas em vez de lado.
    - DIR_HOLD_TIME: tempo mínimo antes de trocar de direção de novo —
-     é isso que elimina o "piscar" que você via antes.
+     é isso que elimina o "piscar" que você via antes. Aumentado um pouco
+     (0.15s → 0.22s) porque, junto com o recorte de transparência lá em
+     cima, deixa a troca de sprite ainda mais estável ao andar em diagonal.
    - FACING_FLIP_THRESHOLD: só espelha o sprite de lado quando o
      movimento lateral é claro o suficiente (evita tremedeira).
    ============================================================ */
 const DIR_SWITCH_BIAS = 1.25;
-const DIR_HOLD_TIME = 0.15;
+const DIR_HOLD_TIME = 0.22;
 const FACING_FLIP_THRESHOLD = 0.22;
 
 function updatePlayer(dt) {
