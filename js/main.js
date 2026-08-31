@@ -48,7 +48,7 @@ const loadingManager = new THREE.LoadingManager();
 const IMAGES_FOLDER = './assets/sprites/imagens/';
 const PAINTING_IMAGE_URL = IMAGES_FOLDER + 'sofiagatinha.jpeg';
 const MEMORY_IMAGE_URLS = [
-  IMAGES_FOLDER + 'memoria1.jpg', // quadro 1 do corredor (esquerda)
+  IMAGES_FOLDER + 'memoria1.jpeg', // quadro 1 do corredor (esquerda)
   IMAGES_FOLDER + 'memoria2.jpg', // quadro 2 do corredor (direita)
   IMAGES_FOLDER + 'memoria3.jpg', // quadro 3 do corredor (esquerda)
 ];
