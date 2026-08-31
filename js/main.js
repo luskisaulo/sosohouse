@@ -751,7 +751,7 @@ interactables.push({
 interactables.push({
   pos: new THREE.Vector3(0, 0, 0), radius: 1.6, id: 'quadro',
   label: 'Ver a pintura', repeatable: true,
-  onInteract: () => showLines([{ falante: 'narrador', texto: 'Um projeto em andamento. Parece que alguém dedicou muitas noites nisso...' }]),
+  onInteract: () => showLines([{ falante: 'narrador', texto: 'Amo a obra de arte que é vc, voce é a nenem mais perfeita do mundo...' }]),
 });
 box(1.2, 0.4, 0.7, MAT.wood, -1.6, 0.2, 3.2);
 const key1Mesh = new THREE.Group();
